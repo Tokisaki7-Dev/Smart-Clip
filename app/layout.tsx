@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Manrope, Sora } from "next/font/google";
 
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -38,6 +39,7 @@ export default function RootLayout({
           <main>{children}</main>
           <SiteFooter />
         </div>
+        <SpeedInsights />
       </body>
     </html>
   );
