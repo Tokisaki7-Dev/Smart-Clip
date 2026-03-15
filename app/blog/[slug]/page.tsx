@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 
 import { createMetadata } from "@/lib/metadata";
 import { absoluteUrl } from "@/lib/utils";
-import { blogPosts, getPostBySlug } from "@/services/blog";
+import { blogPosts } from "@/services/blog";
+import { getPublishedBlogPostBySlug } from "@/services/blog-data";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { CtaStrip } from "@/components/marketing/cta-strip";
@@ -19,7 +20,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPublishedBlogPostBySlug(slug);
 
   if (!post) {
     return {};
@@ -35,11 +36,13 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPublishedBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
+
+  const primaryRelatedTool = post.relatedTools[0] || "cortar-video";
 
   return (
     <>
@@ -61,7 +64,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <ArticleLayout post={post} />
         <CtaStrip
           description="Leia o conteudo, abra a ferramenta relacionada e teste o valor premium com limites controlados no plano gratis."
-          primaryHref={`/${post.relatedTools[0]}`}
+          primaryHref={`/${primaryRelatedTool}`}
           primaryLabel="Abrir ferramenta relacionada"
           secondaryHref="/pricing"
           secondaryLabel="Entender planos"

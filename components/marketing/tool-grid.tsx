@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { SectionHeading } from "@/components/layout/section-heading";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toolDefinitions } from "@/services/tools";
 
@@ -28,13 +29,12 @@ export function ToolGrid() {
               <p className="flex-1 text-sm leading-7 text-muted-foreground">
                 {tool.shortDescription}
               </p>
-              <Link
-                className="inline-flex items-center gap-2 text-sm font-medium text-white transition group-hover:text-primary"
-                href={`/${tool.slug}`}
-              >
-                Abrir ferramenta
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              <Button asChild className="w-full justify-between" variant="secondary">
+                <Link href={`/${tool.slug}#smartclip-uploader`}>
+                  Iniciar agora
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         ))}

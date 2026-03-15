@@ -2,9 +2,13 @@ import { Copy, FolderOpen, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { dashboardSnapshot } from "@/services/dashboard";
+import type { DashboardSnapshot } from "@/types";
 
-export function ProjectList() {
+interface ProjectListProps {
+  snapshot: DashboardSnapshot;
+}
+
+export function ProjectList({ snapshot }: ProjectListProps) {
   return (
     <Card className="border-white/8 bg-white/[0.03]">
       <CardContent className="space-y-5 p-6">
@@ -22,7 +26,7 @@ export function ProjectList() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          {dashboardSnapshot.recentProjects.map((project) => (
+          {snapshot.recentProjects.map((project) => (
             <div
               className="rounded-[1.25rem] border border-white/8 bg-white/[0.03] p-5"
               key={project.name}

@@ -2,43 +2,57 @@ import { BarChart3, Captions, Repeat, WandSparkles } from "lucide-react";
 
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { dashboardSnapshot } from "@/services/dashboard";
+import type { DashboardSnapshot } from "@/types";
 
-const metricCards = [
-  {
-    label: "Exportacoes hoje",
-    value: `${dashboardSnapshot.dailyExportsUsed}/${dashboardSnapshot.dailyExportsLimit}`,
-    progress:
-      (dashboardSnapshot.dailyExportsUsed / dashboardSnapshot.dailyExportsLimit) * 100,
-    icon: BarChart3
-  },
-  {
-    label: "Clipes automaticos no mes",
-    value: `${dashboardSnapshot.monthlyAutoClipsUsed}/${dashboardSnapshot.monthlyAutoClipsLimit}`,
-    progress:
-      (dashboardSnapshot.monthlyAutoClipsUsed /
-        dashboardSnapshot.monthlyAutoClipsLimit) *
-      100,
-    icon: WandSparkles
-  },
-  {
-    label: "Legendas no mes",
-    value: `${dashboardSnapshot.monthlyCaptionsUsed}/${dashboardSnapshot.monthlyCaptionsLimit}`,
-    progress:
-      (dashboardSnapshot.monthlyCaptionsUsed /
-        dashboardSnapshot.monthlyCaptionsLimit) *
-      100,
-    icon: Captions
-  },
-  {
-    label: "Ultimo preset salvo",
-    value: dashboardSnapshot.lastPreset,
-    progress: 100,
-    icon: Repeat
-  }
-];
+interface UsageOverviewProps {
+  snapshot: DashboardSnapshot;
+}
 
-export function UsageOverview() {
+export function UsageOverview({ snapshot }: UsageOverviewProps) {
+  const isDailyUnlimited =
+    snapshot.currentPlan === "creator" || snapshot.currentPlan === "pro";
+  const isAutoClipUnlimited = snapshot.currentPlan === "pro";
+  const isCaptionUnlimited = snapshot.currentPlan === "pro";
+
+  const metricCards = [
+    {
+      label: "Exportacoes hoje",
+      value: isDailyUnlimited
+        ? `${snapshot.dailyExportsUsed}/∞`
+        : `${snapshot.dailyExportsUsed}/${snapshot.dailyExportsLimit}`,
+      progress: isDailyUnlimited
+        ? 100
+        : (snapshot.dailyExportsUsed / snapshot.dailyExportsLimit) * 100,
+      icon: BarChart3
+    },
+    {
+      label: "Clipes automaticos no mes",
+      value: isAutoClipUnlimited
+        ? `${snapshot.monthlyAutoClipsUsed}/∞`
+        : `${snapshot.monthlyAutoClipsUsed}/${snapshot.monthlyAutoClipsLimit}`,
+      progress: isAutoClipUnlimited
+        ? 100
+        : (snapshot.monthlyAutoClipsUsed / snapshot.monthlyAutoClipsLimit) * 100,
+      icon: WandSparkles
+    },
+    {
+      label: "Legendas no mes",
+      value: isCaptionUnlimited
+        ? `${snapshot.monthlyCaptionsUsed}/∞`
+        : `${snapshot.monthlyCaptionsUsed}/${snapshot.monthlyCaptionsLimit}`,
+      progress: isCaptionUnlimited
+        ? 100
+        : (snapshot.monthlyCaptionsUsed / snapshot.monthlyCaptionsLimit) * 100,
+      icon: Captions
+    },
+    {
+      label: "Ultimo preset salvo",
+      value: snapshot.lastPreset,
+      progress: 100,
+      icon: Repeat
+    }
+  ];
+
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {metricCards.map((metric) => {

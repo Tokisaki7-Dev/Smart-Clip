@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { Menu, Sparkles } from "lucide-react";
 
+import { signOutAction } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/lib/site-config";
+import { getOptionalUser } from "@/lib/supabase/auth";
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const user = await getOptionalUser();
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/8 bg-[rgba(4,6,18,0.76)] backdrop-blur-xl">
       <div className="container flex h-20 items-center justify-between gap-4">
@@ -35,12 +39,27 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Button asChild size="sm" variant="ghost">
-            <Link href="/login">Entrar</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/signup">Testar gratis</Link>
-          </Button>
+          {user ? (
+            <>
+              <Button asChild size="sm" variant="ghost">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+              <form action={signOutAction}>
+                <Button size="sm" type="submit" variant="secondary">
+                  Sair
+                </Button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Button asChild size="sm" variant="ghost">
+                <Link href="/login">Entrar</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/signup">Testar gratis</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         <details className="lg:hidden">
@@ -60,12 +79,27 @@ export function SiteHeader() {
               ))}
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/login">Entrar</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/signup">Gratis</Link>
-              </Button>
+              {user ? (
+                <>
+                  <Button asChild size="sm" variant="secondary">
+                    <Link href="/dashboard">Painel</Link>
+                  </Button>
+                  <form action={signOutAction}>
+                    <Button className="w-full" size="sm" type="submit">
+                      Sair
+                    </Button>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <Button asChild size="sm" variant="secondary">
+                    <Link href="/login">Entrar</Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link href="/signup">Gratis</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </details>

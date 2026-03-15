@@ -3,9 +3,18 @@ import { ArrowRight, Crown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { dashboardSnapshot } from "@/services/dashboard";
+import type { DashboardSnapshot } from "@/types";
 
-export function UpgradeBanner() {
+interface UpgradeBannerProps {
+  snapshot: DashboardSnapshot;
+}
+
+export function UpgradeBanner({ snapshot }: UpgradeBannerProps) {
+  const hasUnlimitedPremium =
+    snapshot.currentPlan === "starter" ||
+    snapshot.currentPlan === "creator" ||
+    snapshot.currentPlan === "pro";
+
   return (
     <Card className="border-primary/25 bg-gradient-to-r from-primary/10 via-[#8A5CFF]/10 to-transparent shadow-glow">
       <CardContent className="flex flex-col gap-5 p-6 lg:flex-row lg:items-center lg:justify-between">
@@ -15,12 +24,14 @@ export function UpgradeBanner() {
             CTA contextual
           </div>
           <h3 className="font-display text-2xl text-white">
-            Voce ainda tem {dashboardSnapshot.fullHdRemaining} exportacoes em 1080p e{" "}
-            {dashboardSnapshot.watermarkFreeRemaining} sem marca d&apos;agua no Free.
+            {hasUnlimitedPremium
+              ? "Seu plano ja libera exportacoes sem marca d'agua e 1080p como parte do fluxo padrao."
+              : `Voce ainda tem ${snapshot.fullHdRemaining} exportacoes em 1080p e ${snapshot.watermarkFreeRemaining} sem marca d'agua no Free.`}
           </h3>
           <p className="max-w-2xl text-sm leading-7 text-white/72">
-            Continue sem limites com o Starter ou vá para o Creator se voce ja
-            esta usando presets e automacoes com frequencia.
+            {hasUnlimitedPremium
+              ? "Ajuste seu billing apenas quando o volume de automacoes ou a prioridade de fila justificar outro plano."
+              : "Continue sem limites com o Starter ou vá para o Creator se voce ja esta usando presets e automacoes com frequencia."}
           </p>
         </div>
 

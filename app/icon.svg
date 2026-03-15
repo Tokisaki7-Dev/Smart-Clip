@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="smartclip-gradient" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#2A7FFF" />
+      <stop offset="100%" stop-color="#905CFF" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="#060B19" />
+  <path
+    d="M18 32c0-7.732 6.268-14 14-14h14v10H32a4 4 0 0 0 0 8h8a10 10 0 1 1 0 20H18V46h22a4 4 0 0 0 0-8h-8c-7.732 0-14-6.268-14-14Z"
+    fill="url(#smartclip-gradient)"
+  />
+</svg>

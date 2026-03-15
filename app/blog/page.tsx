@@ -1,10 +1,11 @@
 import { createMetadata } from "@/lib/metadata";
+import { getPublishedBlogPosts } from "@/services/blog-data";
 
 import { AdsenseSlot } from "@/components/ads/adsense-slot";
 import { BlogCard } from "@/components/blog/blog-card";
 import { PageShell } from "@/components/layout/page-shell";
 import { SectionHeading } from "@/components/layout/section-heading";
-import { blogCategories, blogPosts } from "@/services/blog";
+import { blogCategories } from "@/services/blog";
 
 export const metadata = createMetadata({
   title: "Blog",
@@ -13,7 +14,9 @@ export const metadata = createMetadata({
   path: "/blog"
 });
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const posts = await getPublishedBlogPosts();
+
   return (
     <PageShell className="space-y-12">
       <SectionHeading
@@ -36,7 +39,7 @@ export default function BlogPage() {
       <AdsenseSlot label="Blog topo" />
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {blogPosts.map((post) => (
+        {posts.map((post) => (
           <BlogCard key={post.slug} post={post} />
         ))}
       </div>

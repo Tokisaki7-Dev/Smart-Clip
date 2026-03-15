@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const paymentPayloadSchema = z.object({
   planId: z.string(),
-  customerEmail: z.string().email(),
+  customerEmail: z.string().email().optional(),
   paymentMethod: z.enum(["credit_card", "pix", "boleto", "debit_online"]),
   trialDays: z.number().nonnegative().optional(),
   creditPackId: z.string().optional()

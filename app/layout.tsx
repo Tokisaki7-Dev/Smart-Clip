@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Manrope, Sora } from "next/font/google";
 
@@ -31,6 +32,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isVercelRuntime = Boolean(process.env.VERCEL);
+
   return (
     <html className="dark" lang="pt-BR">
       <body className={`${fontSans.variable} ${fontDisplay.variable}`}>
@@ -39,7 +42,8 @@ export default function RootLayout({
           <main>{children}</main>
           <SiteFooter />
         </div>
-        <SpeedInsights />
+        {isVercelRuntime ? <Analytics /> : null}
+        {isVercelRuntime ? <SpeedInsights /> : null}
       </body>
     </html>
   );

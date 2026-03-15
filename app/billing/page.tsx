@@ -1,8 +1,9 @@
 import { createMetadata } from "@/lib/metadata";
+import { getBillingSummary } from "@/services/dashboard-data";
 
+import { BillingActions } from "@/components/billing/billing-actions";
 import { PageShell } from "@/components/layout/page-shell";
 import { SectionHeading } from "@/components/layout/section-heading";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { automationPacks, paymentMethods } from "@/services/billing";
 
@@ -13,7 +14,9 @@ export const metadata = createMetadata({
   path: "/billing"
 });
 
-export default function BillingPage() {
+export default async function BillingPage() {
+  const billingSummary = await getBillingSummary();
+
   return (
     <PageShell className="space-y-12">
       <SectionHeading
@@ -41,16 +44,25 @@ export default function BillingPage() {
               cancelamento self-service. Creator e Pro seguem a mesma base com
               upgrades e downgrades preparados para o painel.
             </p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button>Iniciar checkout transparente</Button>
-              <Button variant="secondary">Cancelar assinatura</Button>
+            <div className="rounded-[1.25rem] border border-primary/20 bg-primary/5 p-4 text-sm leading-7 text-white/80">
+              <p>Plano atual: {billingSummary.currentPlan}</p>
+              <p>{billingSummary.trialMessage}</p>
+              <p>Proxima cobranca: {billingSummary.nextCharge}</p>
+              <p>{billingSummary.paymentMethod}</p>
             </div>
+            <BillingActions
+              currentPlan={billingSummary.currentPlan}
+              packs={automationPacks}
+            />
           </CardContent>
         </Card>
 
         <Card className="border-white/8 bg-white/[0.03]">
           <CardContent className="space-y-5 p-6">
             <h2 className="font-display text-2xl text-white">Creditos premium</h2>
+            <div className="rounded-[1.25rem] border border-white/8 bg-white/[0.03] p-4 text-sm text-white/82">
+              Carteira atual: {billingSummary.creditBalance} creditos
+            </div>
             {automationPacks.map((pack) => (
               <div
                 className="rounded-[1.25rem] border border-white/8 bg-white/[0.03] p-4"

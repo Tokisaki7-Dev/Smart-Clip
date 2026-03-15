@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import { CtaStrip } from "@/components/marketing/cta-strip";
 import { UploadPanel } from "@/components/tool/upload-panel";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRelatedTools } from "@/services/tools";
 
@@ -42,6 +43,15 @@ export function ToolPage({ tool }: ToolPageProps) {
                   {item}
                 </div>
               ))}
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg">
+                <Link href="#smartclip-uploader">Iniciar agora</Link>
+              </Button>
+              <Button asChild size="lg" variant="secondary">
+                <Link href="/signup">Salvar no dashboard</Link>
+              </Button>
             </div>
           </div>
 
@@ -88,13 +98,12 @@ export function ToolPage({ tool }: ToolPageProps) {
                 <p className="text-sm leading-7 text-muted-foreground">
                   {relatedTool.shortDescription}
                 </p>
-                <Link
-                  className="inline-flex items-center gap-2 text-sm font-medium text-white transition hover:text-primary"
-                  href={`/${relatedTool.slug}`}
-                >
-                  Abrir fluxo
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+                <Button asChild className="justify-between" variant="secondary">
+                  <Link href={`/${relatedTool.slug}#smartclip-uploader`}>
+                    Iniciar fluxo
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           ))}

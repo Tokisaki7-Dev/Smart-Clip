@@ -2,9 +2,13 @@ import { Clock3, FileVideo, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { dashboardSnapshot } from "@/services/dashboard";
+import type { DashboardSnapshot } from "@/types";
 
-export function RecentAssets() {
+interface RecentAssetsProps {
+  snapshot: DashboardSnapshot;
+}
+
+export function RecentAssets({ snapshot }: RecentAssetsProps) {
   return (
     <div className="grid gap-4 xl:grid-cols-2">
       <Card className="border-white/8 bg-white/[0.03]">
@@ -13,14 +17,14 @@ export function RecentAssets() {
             <div>
               <h3 className="font-display text-2xl text-white">Arquivos recentes</h3>
               <p className="text-sm text-muted-foreground">
-                {dashboardSnapshot.expirationLabel}
+                {snapshot.expirationLabel}
               </p>
             </div>
             <Clock3 className="h-5 w-5 text-primary" />
           </div>
 
           <div className="space-y-4">
-            {dashboardSnapshot.recentFiles.map((file) => (
+            {snapshot.recentFiles.map((file) => (
               <div
                 className="flex items-start justify-between gap-4 rounded-[1.25rem] border border-white/8 bg-white/[0.03] p-4"
                 key={file.name}
@@ -53,7 +57,7 @@ export function RecentAssets() {
           </div>
 
           <div className="space-y-4">
-            {dashboardSnapshot.recentExports.map((item) => (
+            {snapshot.recentExports.map((item) => (
               <div
                 className="flex items-start justify-between gap-4 rounded-[1.25rem] border border-white/8 bg-white/[0.03] p-4"
                 key={item.name}
