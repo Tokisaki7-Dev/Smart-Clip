@@ -1,0 +1,65 @@
+import { createMetadata } from "@/lib/metadata";
+
+import { BillingSummaryPanel } from "@/components/dashboard/billing-summary";
+import { ProjectList } from "@/components/dashboard/project-list";
+import { RecentAssets } from "@/components/dashboard/recent-assets";
+import { UpgradeBanner } from "@/components/dashboard/upgrade-banner";
+import { UsageOverview } from "@/components/dashboard/usage-overview";
+import { PageShell } from "@/components/layout/page-shell";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { dashboardSnapshot } from "@/services/dashboard";
+
+export const metadata = createMetadata({
+  title: "Dashboard",
+  description:
+    "Painel orientado a retorno com uso do dia, automacoes restantes, arquivos recentes, projetos e billing.",
+  path: "/dashboard"
+});
+
+export default function DashboardPage() {
+  return (
+    <PageShell className="space-y-8">
+      <div className="grid gap-6 lg:grid-cols-[1fr,320px]">
+        <Card className="border-white/8 bg-gradient-to-r from-white/[0.05] to-white/[0.02]">
+          <CardContent className="space-y-5 p-6 lg:p-8">
+            <Badge variant="primary">Dashboard de retencao</Badge>
+            <div className="space-y-3">
+              <h1 className="font-display text-4xl text-white">
+                Ola, {dashboardSnapshot.userName}. Seu ultimo preset foi{" "}
+                {dashboardSnapshot.lastPreset}.
+              </h1>
+              <p className="max-w-3xl text-base leading-8 text-muted-foreground">
+                O painel foi pensado para trazer voce de volta com historico claro,
+                repeticao de exportacoes, projetos recentes e CTAs elegantes para
+                quando o valor premium fizer sentido.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/20 bg-[#081227]/90 shadow-glow">
+          <CardContent className="space-y-4 p-6">
+            <p className="text-sm uppercase tracking-[0.24em] text-primary">Seu plano</p>
+            <h2 className="font-display text-3xl text-white">
+              {dashboardSnapshot.currentPlan.toUpperCase()}
+            </h2>
+            <p className="text-sm leading-7 text-muted-foreground">
+              Exportacoes hoje: {dashboardSnapshot.dailyExportsUsed} de{" "}
+              {dashboardSnapshot.dailyExportsLimit}. Clipes gratis restantes no mes:{" "}
+              {dashboardSnapshot.monthlyAutoClipsLimit -
+                dashboardSnapshot.monthlyAutoClipsUsed}
+              .
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <UsageOverview />
+      <UpgradeBanner />
+      <RecentAssets />
+      <ProjectList />
+      <BillingSummaryPanel />
+    </PageShell>
+  );
+}

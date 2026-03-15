@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 226 46% 6%;
+    --foreground: 220 45% 96%;
+    --muted: 228 28% 16%;
+    --muted-foreground: 221 18% 68%;
+    --card: 226 42% 10%;
+    --border: 220 24% 18%;
+    --primary: 221 100% 64%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 266 62% 58%;
+    --accent: 281 77% 65%;
+    --success: 155 78% 49%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-background font-sans text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at top left, rgba(64, 103, 255, 0.22), transparent 30%),
+      radial-gradient(circle at top right, rgba(145, 92, 255, 0.18), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 22%);
+  }
+
+  a {
+    @apply transition-colors;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply rounded-[1.75rem] border border-white/10 bg-white/[0.03] backdrop-blur-md;
+  }
+}

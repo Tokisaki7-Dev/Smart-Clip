@@ -1,0 +1,347 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum PlanId {
+  FREE
+  STARTER
+  CREATOR
+  PRO
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+  PAUSED
+}
+
+enum BillingProvider {
+  PAGBANK
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  PAID
+  FAILED
+  REFUNDED
+  CANCELED
+}
+
+enum VideoStatus {
+  UPLOADING
+  READY
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum JobType {
+  TRIM
+  EXTRACT_AUDIO
+  COMPRESS
+  CONVERT
+  RESIZE
+  AUTO_CLIP
+  AUTO_CAPTION
+  EXPORT
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELED
+}
+
+enum ExportStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  DOWNLOADED
+}
+
+enum CreditTransactionType {
+  PURCHASE
+  BONUS
+  CONSUME
+  REFUND
+  EXPIRE
+  ADJUSTMENT
+}
+
+model User {
+  id                 String              @id @db.Uuid
+  email              String              @unique
+  fullName           String?
+  avatarUrl          String?
+  currentPlan        PlanId              @default(FREE)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  subscriptions      Subscription[]
+  billingProfile     BillingProfile?
+  paymentAttempts    PaymentAttempt[]
+  videos             Video[]
+  processingJobs     ProcessingJob[]
+  exports            Export[]
+  projects           Project[]
+  savedPresets       SavedPreset[]
+  usageCounters      UsageCounter[]
+  creditWallet       CreditWallet?
+  creditTransactions CreditTransaction[]
+  blogPosts          BlogPost[]
+}
+
+model Subscription {
+  id                  String             @id @default(uuid()) @db.Uuid
+  userId              String             @db.Uuid
+  planId              PlanId
+  status              SubscriptionStatus
+  provider            BillingProvider    @default(PAGBANK)
+  externalId          String?
+  trialEndsAt         DateTime?
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+  canceledAt          DateTime?
+  cancelAtPeriodEnd   Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentAttempts     PaymentAttempt[]
+
+  @@index([userId, status])
+  @@index([planId, status])
+}
+
+model BillingProfile {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @unique @db.Uuid
+  legalName          String?
+  documentNumber     String?
+  phone              String?
+  zipCode            String?
+  city               String?
+  state              String?
+  country            String   @default("BR")
+  providerCustomerId String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PaymentAttempt {
+  id                String          @id @default(uuid()) @db.Uuid
+  userId            String          @db.Uuid
+  subscriptionId    String?         @db.Uuid
+  creditPackId      String?
+  provider          BillingProvider @default(PAGBANK)
+  providerPaymentId String?
+  paymentMethod     String
+  amountCents       Int
+  currency          String          @default("BRL")
+  status            PaymentStatus
+  failureReason     String?
+  rawPayload        Json?
+  createdAt         DateTime        @default(now())
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription      Subscription?   @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([subscriptionId])
+}
+
+model PaymentWebhook {
+  id              String          @id @default(uuid()) @db.Uuid
+  provider        BillingProvider @default(PAGBANK)
+  eventType       String
+  providerEventId String          @unique
+  payload         Json
+  processStatus   String          @default("pending")
+  processedAt     DateTime?
+  createdAt       DateTime        @default(now())
+
+  @@index([provider, processStatus])
+}
+
+model Video {
+  id              String           @id @default(uuid()) @db.Uuid
+  userId          String           @db.Uuid
+  storageBucket   String
+  storagePath     String
+  originalName    String
+  mimeType        String
+  sizeBytes       BigInt
+  durationSeconds Int?
+  width           Int?
+  height          Int?
+  sourceFormat    String?
+  status          VideoStatus      @default(UPLOADING)
+  retentionEndsAt DateTime?
+  metadata        Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  processingJobs  ProcessingJob[]
+  exports         Export[]
+  projects        Project[]
+
+  @@index([userId, status])
+  @@index([retentionEndsAt])
+}
+
+model ProcessingJob {
+  id           String       @id @default(uuid()) @db.Uuid
+  userId       String       @db.Uuid
+  videoId      String?      @db.Uuid
+  type         JobType
+  status       JobStatus    @default(QUEUED)
+  queueName    String       @default("processing_jobs")
+  priority     Int          @default(0)
+  input        Json
+  output       Json?
+  errorMessage String?
+  workerToken  String?
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video        Video?       @relation(fields: [videoId], references: [id], onDelete: SetNull)
+  exports      Export[]
+
+  @@index([status, queueName, priority])
+  @@index([userId, createdAt])
+  @@index([videoId])
+}
+
+model Export {
+  id               String       @id @default(uuid()) @db.Uuid
+  userId           String       @db.Uuid
+  videoId          String?      @db.Uuid
+  processingJobId  String?      @db.Uuid
+  toolSlug         String
+  outputFormat     String
+  resolution       String
+  watermarkEnabled Boolean      @default(true)
+  storagePath      String
+  status           ExportStatus @default(QUEUED)
+  downloadCount    Int          @default(0)
+  expiresAt        DateTime?
+  createdAt        DateTime     @default(now())
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video            Video?       @relation(fields: [videoId], references: [id], onDelete: SetNull)
+  processingJob    ProcessingJob? @relation(fields: [processingJobId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([status, expiresAt])
+}
+
+model Project {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  videoId      String?  @db.Uuid
+  name         String
+  toolSlug     String
+  config       Json
+  isTemplate   Boolean  @default(false)
+  lastExportId String?  @db.Uuid
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video        Video?   @relation(fields: [videoId], references: [id], onDelete: SetNull)
+
+  @@index([userId, updatedAt])
+}
+
+model SavedPreset {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  name       String
+  toolSlug   String
+  config     Json
+  isSystem   Boolean  @default(false)
+  usageCount Int      @default(0)
+  lastUsedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, toolSlug])
+}
+
+model UsageCounter {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  metric     String
+  periodKey  String
+  usedValue  Int      @default(0)
+  limitValue Int      @default(0)
+  resetAt    DateTime?
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, metric, periodKey])
+  @@index([metric, periodKey])
+}
+
+model CreditWallet {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @unique @db.Uuid
+  balance           Int      @default(0)
+  lifetimePurchased Int      @default(0)
+  lifetimeSpent     Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions      CreditTransaction[]
+}
+
+model CreditTransaction {
+  id           String                @id @default(uuid()) @db.Uuid
+  walletId     String                @db.Uuid
+  userId       String                @db.Uuid
+  type         CreditTransactionType
+  amount       Int
+  balanceAfter Int
+  sourceType   String?
+  sourceId     String?
+  metadata     Json?
+  createdAt    DateTime              @default(now())
+  wallet       CreditWallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model BlogPost {
+  id             String   @id @default(uuid()) @db.Uuid
+  authorId       String?  @db.Uuid
+  slug           String   @unique
+  title          String
+  excerpt        String
+  content        Json
+  category       String
+  seoTitle       String?
+  seoDescription String?
+  isPublished    Boolean  @default(false)
+  publishedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  author         User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([category, isPublished])
+}
