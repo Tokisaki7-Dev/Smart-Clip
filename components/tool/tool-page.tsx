@@ -79,7 +79,11 @@ export function ToolPage({ tool }: ToolPageProps) {
       </section>
 
       <section className="container">
-        <AdsenseSlot className="max-w-4xl" label="Pagina de ferramenta abaixo do resultado" />
+        <AdsenseSlot
+          className="max-w-4xl"
+          label="Pagina de ferramenta abaixo do resultado"
+          slotKey="toolResult"
+        />
       </section>
 
       <section className="container">

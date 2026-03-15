@@ -36,7 +36,7 @@ export default async function BlogPage() {
         ))}
       </div>
 
-      <AdsenseSlot label="Blog topo" />
+      <AdsenseSlot label="Blog topo" slotKey="blogTop" />
 
       <div className="grid gap-4 lg:grid-cols-2">
         {posts.map((post) => (
@@ -44,8 +44,8 @@ export default async function BlogPage() {
         ))}
       </div>
 
-      <AdsenseSlot label="Blog meio" />
-      <AdsenseSlot label="Blog fim" />
+      <AdsenseSlot label="Blog meio" slotKey="blogMiddle" />
+      <AdsenseSlot label="Blog fim" slotKey="blogBottom" />
     </PageShell>
   );
 }

@@ -50,6 +50,9 @@ export default function RootLayout({
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
           strategy="beforeInteractive"
         />
+        <Script id="adsense-auto-ads" strategy="afterInteractive">
+          {`window.adsbygoogle = window.adsbygoogle || []; window.adsbygoogle.push({ google_ad_client: "${adsenseClient}", enable_page_level_ads: true });`}
+        </Script>
         <div className="relative min-h-screen">
           <SiteHeader />
           <main>{children}</main>

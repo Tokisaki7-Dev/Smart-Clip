@@ -45,7 +45,11 @@ export default function HomePage() {
       <Hero />
       <ToolGrid />
       <PageShell className="pt-0">
-        <AdsenseSlot className="max-w-4xl" label="Home entre secoes" />
+        <AdsenseSlot
+          className="max-w-4xl"
+          label="Home entre secoes"
+          slotKey="home"
+        />
       </PageShell>
       <HowItWorks />
       <FreeValueSection />
