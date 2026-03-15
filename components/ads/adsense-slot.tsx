@@ -6,6 +6,10 @@ interface AdsenseSlotProps {
 }
 
 export function AdsenseSlot({ label, className }: AdsenseSlotProps) {
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
+
   return (
     <div
       className={cn(
@@ -13,7 +17,7 @@ export function AdsenseSlot({ label, className }: AdsenseSlotProps) {
         className
       )}
     >
-      Slot de anuncio discreto: {label}
+      Espaco reservado para AdSense: {label}
     </div>
   );
 }
