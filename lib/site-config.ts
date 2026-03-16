@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "SmartClip",
   description:
-    "Transforme videos longos em clipes virais, formatos sociais e exportacoes prontas para TikTok, Shorts, Reels, Stories e WhatsApp em poucos cliques.",
+    "Transforme videos em clipes 1080p com legenda automatica, formatos sociais e exportacoes prontas para TikTok, Shorts, Reels, Stories e WhatsApp em poucos cliques.",
   url: "https://smartreel.vercel.app",
   supportEmail: "suporte@smartclip.app",
   nav: [

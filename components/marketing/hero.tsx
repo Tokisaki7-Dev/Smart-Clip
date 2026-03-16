@@ -12,6 +12,7 @@ const heroStats = [
 ];
 
 const heroPromises = [
+  "Gerar clip 1080p com legenda automatica para redes sociais",
   "Transformar qualquer video em clipe viral curto",
   "Verticalizar videos horizontais com fundo blur",
   "Gerar teaser curto para lancamentos e vendas"
@@ -33,13 +34,14 @@ export function Hero() {
 
           <div className="space-y-5">
             <h1 className="max-w-4xl font-display text-5xl leading-[0.94] text-white sm:text-6xl lg:text-7xl">
-              Suba qualquer video e transforme em clipes curtos que parecem mais
-              prontos para TikTok, Shorts, Reels e Stories.
+              Suba qualquer video e transforme em clipes curtos 1080p com mais
+              cara de pronto para TikTok, Shorts, Reels e Stories.
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-white/68">
               O SmartClip agora combina ferramentas de alto apelo organico,
-              presets inteligentes e um fluxo muito mais bonito para cortar,
-              verticalizar, resumir, comprimir e publicar sem friccao.
+              presets inteligentes, legenda automatica no navegador e um fluxo
+              muito mais bonito para cortar, verticalizar, resumir, comprimir e
+              publicar sem friccao.
             </p>
           </div>
 
@@ -60,7 +62,7 @@ export function Hero() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
               <Link href={`/${spotlightTool.slug}#smartclip-uploader`}>
-                Testar ferramenta viral
+                Testar ferramenta principal
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

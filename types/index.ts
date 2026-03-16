@@ -1,6 +1,7 @@
 export type PlanId = "free" | "starter" | "creator" | "pro";
 
 export type ToolSlug =
+  | "video-para-clipe-com-legenda-automatica"
   | "video-para-clipe-viral"
   | "cortar-video-automaticamente"
   | "video-horizontal-para-vertical"

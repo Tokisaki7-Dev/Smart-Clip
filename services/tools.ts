@@ -2,6 +2,40 @@ import type { ToolDefinition, ToolSlug } from "@/types";
 
 export const toolDefinitions: ToolDefinition[] = [
   {
+    slug: "video-para-clipe-com-legenda-automatica",
+    title: "Transformar video em clipe com legenda automatica",
+    kicker: "Produto estrela",
+    category: "Clipes virais",
+    attentionLabel: "1080p com legenda",
+    shortDescription:
+      "Transforme qualquer video em um clipe curto 1080p com legenda automatica, framing vertical e saida pronta para TikTok, Shorts, Reels e Stories.",
+    longDescription:
+      "Essa e a rota mais forte do SmartClip para quem quer publicar rapido com cara de conteudo pronto. O fluxo encurta o video, converte para vertical, tenta gerar legenda automatica no proprio navegador e exporta em 1080p para redes sociais com menos trabalho manual.",
+    seoTitle: "Transformar video em clipe com legenda automatica em 1080p",
+    seoDescription:
+      "Transforme videos em clipes prontos com legenda automatica, formato 1080x1920 e exportacao em 1080p para TikTok, Shorts, Reels, Stories e redes sociais.",
+    supportedOutputs: [
+      "1080x1920",
+      "Legenda automatica",
+      "TikTok-safe",
+      "Reels-safe"
+    ],
+    useCases: [
+      "Cortes com legenda para podcast",
+      "Conteudo social para vendas",
+      "Clipes prontos para discovery",
+      "Repurpose de video longo"
+    ],
+    retentionPrompt:
+      "Salve esse preset com legenda e repita a mesma estrutura sempre que quiser publicar um novo corte 1080p.",
+    audience:
+      "Criadores, social media, infoprodutores, times de marketing e qualquer pessoa que precise postar mais sem editar legenda na mao.",
+    promise:
+      "Entrega o tipo de resultado que chama clique e aumenta valor percebido logo no primeiro uso.",
+    platforms: ["TikTok", "Shorts", "Reels", "Stories"],
+    featured: true
+  },
+  {
     slug: "video-para-clipe-viral",
     title: "Transformar video em clipe viral",
     kicker: "Motor de descoberta",

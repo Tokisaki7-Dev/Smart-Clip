@@ -8,12 +8,14 @@ export const seoClusters: SeoCluster[] = [
       "Cluster focado em transformar videos longos em formatos curtos com alto apelo para redes sociais e descoberta.",
     intent: "Atrair usuarios que querem mais alcance, mais retenção e menos tempo editando manualmente.",
     keywords: [
+      "clipe com legenda automatica",
       "transformar video em clipe viral",
       "cortar video automaticamente",
       "criar trailer curto",
       "video curto para tiktok"
     ],
     relatedRoutes: [
+      "/video-para-clipe-com-legenda-automatica",
       "/video-para-clipe-viral",
       "/cortar-video-automaticamente",
       "/criar-trailer-curto",
@@ -97,6 +99,7 @@ export const seoClusters: SeoCluster[] = [
     intent: "Levar trafego altamente qualificado para paginas de ferramenta e upgrade premium.",
     keywords: ["video para reels", "video para shorts", "video para tiktok", "video para stories"],
     relatedRoutes: [
+      "/video-para-clipe-com-legenda-automatica",
       "/video-para-reels",
       "/video-para-shorts",
       "/video-para-tiktok",

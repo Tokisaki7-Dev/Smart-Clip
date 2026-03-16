@@ -6,6 +6,11 @@ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 
 import { useUploadEstimate } from "@/hooks/use-upload-estimate";
+import {
+  buildCaptionSrt,
+  buildCaptionVtt,
+  generateAutomaticCaptions
+} from "@/lib/auto-captions";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   buildProcessingPlan,
@@ -14,6 +19,7 @@ import {
   getFormatOptions,
   getPresetOptions,
   isAudioOnlyTool,
+  resolveOutputWindow,
   type OutputFormat,
   type QualityMode
 } from "@/lib/tool-processing";
@@ -95,6 +101,9 @@ function getResolutionLabel(toolSlug: ToolSlug, preset: string, outputFormat: Ou
   }
 
   if (
+    preset === "Clip com legenda 30s" ||
+    preset === "Clip com legenda 45s" ||
+    preset === "Clip com legenda podcast 59s" ||
     preset === "Reels 1080x1920" ||
     preset === "Shorts 1080x1920" ||
     preset === "Vertical com blur" ||
@@ -103,6 +112,7 @@ function getResolutionLabel(toolSlug: ToolSlug, preset: string, outputFormat: Ou
     preset === "Clip viral 45s" ||
     preset === "UGC 20s" ||
     preset === "Podcast 59s" ||
+    toolSlug === "video-para-clipe-com-legenda-automatica" ||
     toolSlug === "video-para-clipe-viral" ||
     toolSlug === "video-horizontal-para-vertical"
   ) {
@@ -156,14 +166,85 @@ async function uploadToSignedUrl(
   }
 }
 
+async function loadCaptionFont(ffmpeg: FFmpeg) {
+  const fontName = "NotoSans-Regular.ttf";
+
+  try {
+    await ffmpeg.deleteFile(fontName);
+  } catch {
+    // Ignora se o arquivo nao existir.
+  }
+
+  const response = await fetch("/fonts/noto-sans-v27-latin-regular.ttf");
+  if (!response.ok) {
+    throw new Error("font_download_failed");
+  }
+
+  const fontBuffer = new Uint8Array(await response.arrayBuffer());
+  await ffmpeg.writeFile(fontName, fontBuffer);
+  return fontName;
+}
+
+async function createCaptionAudioBlob(
+  ffmpeg: FFmpeg,
+  inputFsName: string,
+  trimStart: number,
+  trimEnd: number
+) {
+  const audioFileName = "caption-audio.wav";
+
+  try {
+    await ffmpeg.deleteFile(audioFileName);
+  } catch {
+    // Ignora se o arquivo nao existir.
+  }
+
+  const args = [
+    ...(trimEnd > trimStart && trimEnd > 0
+      ? ["-ss", trimStart.toFixed(2), "-to", trimEnd.toFixed(2)]
+      : []),
+    "-i",
+    inputFsName,
+    "-vn",
+    "-ac",
+    "1",
+    "-ar",
+    "16000",
+    "-c:a",
+    "pcm_s16le",
+    audioFileName
+  ];
+
+  const exitCode = await ffmpeg.exec(args);
+  if (exitCode !== 0) {
+    throw new Error(`FFmpeg terminou com codigo ${exitCode} ao preparar a legenda.`);
+  }
+
+  const audioData = await ffmpeg.readFile(audioFileName);
+  if (!(audioData instanceof Uint8Array)) {
+    throw new Error("Nao foi possivel ler o audio para gerar a legenda.");
+  }
+
+  const normalizedAudio = new Uint8Array(audioData.byteLength);
+  normalizedAudio.set(audioData);
+
+  return new Blob([normalizedAudio], { type: "audio/wav" });
+}
+
 export function UploadPanel({ tool }: UploadPanelProps) {
   const ffmpegRef = useRef<FFmpeg | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const loadedCallbacksRef = useRef(false);
+  const captionUrlRef = useRef<{ srt: string | null; vtt: string | null }>({
+    srt: null,
+    vtt: null
+  });
   const isAudioTool = isAudioOnlyTool(tool.slug);
+  const supportsAutoCaptions = tool.slug === "video-para-clipe-com-legenda-automatica";
   const formatOptions = useMemo(() => getFormatOptions(tool.slug), [tool.slug]);
   const presetOptions = useMemo(() => getPresetOptions(tool.slug), [tool.slug]);
   const isSmartTool =
+    tool.slug === "video-para-clipe-com-legenda-automatica" ||
     tool.slug === "video-para-clipe-viral" ||
     tool.slug === "cortar-video-automaticamente" ||
     tool.slug === "video-horizontal-para-vertical" ||
@@ -197,6 +278,19 @@ export function UploadPanel({ tool }: UploadPanelProps) {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [downloadFileName, setDownloadFileName] = useState("");
   const [downloadType, setDownloadType] = useState<"video" | "audio">("video");
+  const [captionStatusMessage, setCaptionStatusMessage] = useState(
+    supportsAutoCaptions
+      ? "A legenda automatica usa IA no navegador e pode levar mais tempo na primeira vez."
+      : ""
+  );
+  const [captionPreviewText, setCaptionPreviewText] = useState("");
+  const [captionSrtUrl, setCaptionSrtUrl] = useState<string | null>(null);
+  const [captionVttUrl, setCaptionVttUrl] = useState<string | null>(null);
+  const [captionBaseFileName, setCaptionBaseFileName] = useState("");
+  const [captionRenderMode, setCaptionRenderMode] = useState<"idle" | "burned" | "sidecar">(
+    "idle"
+  );
+  const [isGeneratingCaptions, setIsGeneratingCaptions] = useState(false);
   const [logLines, setLogLines] = useState<string[]>([]);
 
   const queue = useMemo(() => {
@@ -207,6 +301,13 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     return preset === "Original" ? ("padrao" as const) : ("rapida" as const);
   }, [preset]);
   const estimate = useUploadEstimate(fileSizeMb, queue);
+
+  useEffect(() => {
+    captionUrlRef.current = {
+      srt: captionSrtUrl,
+      vtt: captionVttUrl
+    };
+  }, [captionSrtUrl, captionVttUrl]);
 
   useEffect(() => {
     const defaultPreset = getDefaultPresetForTool(tool.slug);
@@ -241,13 +342,30 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     setSyncMessage("Entre para sincronizar historico, projetos e exportacoes no dashboard.");
     setDownloadUrl(null);
     setDownloadFileName("");
+    setCaptionPreviewText("");
+    setCaptionBaseFileName("");
+    setCaptionRenderMode("idle");
+    setIsGeneratingCaptions(false);
+    setCaptionStatusMessage(
+      supportsAutoCaptions
+        ? "A legenda automatica usa IA no navegador e pode levar mais tempo na primeira vez."
+        : ""
+    );
+    if (captionUrlRef.current.srt) {
+      URL.revokeObjectURL(captionUrlRef.current.srt);
+    }
+    if (captionUrlRef.current.vtt) {
+      URL.revokeObjectURL(captionUrlRef.current.vtt);
+    }
+    setCaptionSrtUrl(null);
+    setCaptionVttUrl(null);
     setLogLines([]);
     setDuration(0);
     setTrimStart(0);
     setTrimEnd(0);
     setVideoWidth(0);
     setVideoHeight(0);
-  }, [tool.slug]);
+  }, [supportsAutoCaptions, tool.slug]);
 
   useEffect(() => {
     return () => {
@@ -258,8 +376,16 @@ export function UploadPanel({ tool }: UploadPanelProps) {
       if (downloadUrl) {
         URL.revokeObjectURL(downloadUrl);
       }
+
+      if (captionSrtUrl) {
+        URL.revokeObjectURL(captionSrtUrl);
+      }
+
+      if (captionVttUrl) {
+        URL.revokeObjectURL(captionVttUrl);
+      }
     };
-  }, [downloadUrl, previewUrl]);
+  }, [captionSrtUrl, captionVttUrl, downloadUrl, previewUrl]);
 
   useEffect(() => {
     return () => {
@@ -324,6 +450,14 @@ export function UploadPanel({ tool }: UploadPanelProps) {
       setDownloadUrl(null);
       setDownloadFileName("");
     }
+    if (captionSrtUrl) {
+      URL.revokeObjectURL(captionSrtUrl);
+      setCaptionSrtUrl(null);
+    }
+    if (captionVttUrl) {
+      URL.revokeObjectURL(captionVttUrl);
+      setCaptionVttUrl(null);
+    }
 
     setSelectedFile(file);
     setFileName(file.name);
@@ -340,6 +474,15 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     setTrimEnd(0);
     setVideoWidth(0);
     setVideoHeight(0);
+    setCaptionPreviewText("");
+    setCaptionBaseFileName("");
+    setCaptionRenderMode("idle");
+    setIsGeneratingCaptions(false);
+    setCaptionStatusMessage(
+      supportsAutoCaptions
+        ? "Arquivo pronto para clip 1080p. A legenda automatica sera criada quando voce iniciar o processamento."
+        : ""
+    );
     setLogLines([]);
   };
 
@@ -543,12 +686,43 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     setProgress(36);
     setStatusMessage("Preparando arquivos para processamento...");
     setLogLines([]);
+    setCaptionRenderMode("idle");
+    setIsGeneratingCaptions(false);
+
+    if (captionSrtUrl) {
+      URL.revokeObjectURL(captionSrtUrl);
+      setCaptionSrtUrl(null);
+    }
+
+    if (captionVttUrl) {
+      URL.revokeObjectURL(captionVttUrl);
+      setCaptionVttUrl(null);
+    }
 
     try {
       const ffmpeg = await loadEngine();
       const inputExtension =
         selectedFile.name.split(".").pop()?.toLowerCase() || "mp4";
       const inputFsName = `input.${inputExtension}`;
+      const resolvedWindow = resolveOutputWindow({
+        toolSlug: tool.slug,
+        preset,
+        trimStart,
+        trimEnd: duration > 0 ? trimEnd : 0,
+        duration
+      });
+      const captionBaseName = selectedFile.name
+        .replace(/\.[^.]+$/, "")
+        .replace(/[^a-zA-Z0-9._-]/g, "-");
+      let hasGeneratedCaptionFiles = false;
+      let generatedCaptionText = "";
+      let burnedCaptionConfig:
+        | {
+            captions: Awaited<ReturnType<typeof generateAutomaticCaptions>>["captions"];
+            fontFileName: string;
+          }
+        | undefined;
+      let nextCaptionRenderMode: "idle" | "burned" | "sidecar" = "idle";
 
       try {
         await ffmpeg.deleteFile(inputFsName);
@@ -556,16 +730,75 @@ export function UploadPanel({ tool }: UploadPanelProps) {
         // Ignora se o arquivo nao existir.
       }
 
-      const plan = buildProcessingPlan({
-        toolSlug: tool.slug,
-        inputFileName: selectedFile.name,
-        outputFormat,
-        qualityMode,
-        preset,
-        trimStart,
-        trimEnd: duration > 0 ? trimEnd : 0,
-        duration
-      });
+      await ffmpeg.writeFile(inputFsName, await fetchFile(selectedFile));
+
+      if (supportsAutoCaptions) {
+        setIsGeneratingCaptions(true);
+        setCaptionStatusMessage("Extraindo o audio do trecho para criar a legenda automatica...");
+
+        const captionAudioBlob = await createCaptionAudioBlob(
+          ffmpeg,
+          inputFsName,
+          resolvedWindow.trimStart,
+          resolvedWindow.trimEnd
+        );
+
+        setCaptionStatusMessage(
+          "Gerando legenda automatica com IA no navegador. A primeira vez pode baixar um modelo maior."
+        );
+
+        const captionResult = await generateAutomaticCaptions(captionAudioBlob);
+        generatedCaptionText = captionResult.fullText;
+        setCaptionPreviewText(captionResult.fullText);
+
+        if (captionResult.captions.length > 0) {
+          hasGeneratedCaptionFiles = true;
+          const captionVttBlob = new Blob([buildCaptionVtt(captionResult.captions)], {
+            type: "text/vtt"
+          });
+          const captionSrtBlob = new Blob([buildCaptionSrt(captionResult.captions)], {
+            type: "application/x-subrip"
+          });
+
+          setCaptionVttUrl(URL.createObjectURL(captionVttBlob));
+          setCaptionSrtUrl(URL.createObjectURL(captionSrtBlob));
+          setCaptionBaseFileName(`${captionBaseName}-${tool.slug}`);
+
+          try {
+            const fontFileName = await loadCaptionFont(ffmpeg);
+            burnedCaptionConfig = {
+              captions: captionResult.captions,
+              fontFileName
+            };
+            nextCaptionRenderMode = "burned";
+            setCaptionStatusMessage("Legenda pronta. Vou aplicar no clipe 1080p agora.");
+          } catch {
+            nextCaptionRenderMode = "sidecar";
+            setCaptionStatusMessage(
+              "Legenda pronta para download. Se a queima no video nao estiver disponivel, o clip sai em 1080p com SRT e VTT separados."
+            );
+          }
+        } else {
+          setCaptionStatusMessage(
+            "Nao foi possivel montar legendas desse audio. O clipe 1080p sera exportado sem texto."
+          );
+        }
+      }
+
+      const createPlan = (withBurnedCaptions: boolean) =>
+        buildProcessingPlan({
+          toolSlug: tool.slug,
+          inputFileName: selectedFile.name,
+          outputFormat,
+          qualityMode,
+          preset,
+          trimStart,
+          trimEnd: duration > 0 ? trimEnd : 0,
+          duration,
+          burnedCaptions: withBurnedCaptions ? burnedCaptionConfig : undefined
+        });
+
+      let plan = createPlan(Boolean(burnedCaptionConfig));
 
       try {
         await ffmpeg.deleteFile(plan.outputFileName);
@@ -573,11 +806,31 @@ export function UploadPanel({ tool }: UploadPanelProps) {
         // Ignora se o arquivo nao existir.
       }
 
-      await ffmpeg.writeFile(inputFsName, await fetchFile(selectedFile));
-      setStatusMessage("Processando com FFmpeg no navegador...");
+      setStatusMessage(
+        supportsAutoCaptions && burnedCaptionConfig
+          ? "Aplicando legenda automatica e exportando o clipe 1080p..."
+          : "Processando com FFmpeg no navegador..."
+      );
       setProgress(52);
 
-      const exitCode = await ffmpeg.exec(plan.args);
+      let exitCode = await ffmpeg.exec(plan.args);
+
+      if (exitCode !== 0 && burnedCaptionConfig) {
+        nextCaptionRenderMode = "sidecar";
+        setCaptionStatusMessage(
+          "Seu navegador nao conseguiu queimar a legenda no video. O clip 1080p segue pronto com a legenda em SRT e VTT."
+        );
+
+        try {
+          await ffmpeg.deleteFile(plan.outputFileName);
+        } catch {
+          // Ignora se o arquivo nao existir.
+        }
+
+        plan = createPlan(false);
+        exitCode = await ffmpeg.exec(plan.args);
+      }
+
       if (exitCode !== 0) {
         throw new Error(`FFmpeg terminou com codigo ${exitCode}.`);
       }
@@ -601,11 +854,28 @@ export function UploadPanel({ tool }: UploadPanelProps) {
       setDownloadUrl(nextDownloadUrl);
       setDownloadFileName(plan.outputFileName);
       setDownloadType(plan.outputMimeType.startsWith("audio/") ? "audio" : "video");
+      setCaptionRenderMode(nextCaptionRenderMode);
       setProgress(100);
       setProcessingProgress(100);
       setStatusMessage(
         `Resultado pronto em ${plan.outputLabel}. Baixe agora ou processe outro preset.`
       );
+
+      if (supportsAutoCaptions) {
+        if (nextCaptionRenderMode === "burned") {
+          setCaptionStatusMessage(
+            "Legenda automatica aplicada no clipe 1080p. O video ja sai mais pronto para redes sociais."
+          );
+        } else if (hasGeneratedCaptionFiles) {
+          setCaptionStatusMessage(
+            "Clip 1080p pronto. Se quiser, baixe tambem a legenda automatica em SRT ou VTT."
+          );
+        } else if (generatedCaptionText) {
+          setCaptionStatusMessage(
+            "A transcricao foi lida, mas nao virou blocos de legenda confiaveis. O clip 1080p saiu sem texto."
+          );
+        }
+      }
 
       await syncWithDashboard(
         selectedFile,
@@ -619,7 +889,15 @@ export function UploadPanel({ tool }: UploadPanelProps) {
           ? error.message
           : "O processamento falhou. Tente um arquivo menor ou outro formato."
       );
+      if (supportsAutoCaptions) {
+        setCaptionStatusMessage(
+          error instanceof Error
+            ? `A etapa de legenda automatica falhou: ${error.message}`
+            : "A etapa de legenda automatica falhou nesse navegador."
+        );
+      }
     } finally {
+      setIsGeneratingCaptions(false);
       setIsProcessing(false);
     }
   };
@@ -797,6 +1075,58 @@ export function UploadPanel({ tool }: UploadPanelProps) {
               </p>
             </div>
 
+            {supportsAutoCaptions ? (
+              <div className="space-y-3 rounded-2xl border border-secondary/20 bg-secondary/10 p-4">
+                <p className="text-sm uppercase tracking-[0.2em] text-secondary">
+                  Legenda automatica 1080p
+                </p>
+                <p className="text-sm leading-7 text-white/78">{captionStatusMessage}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3 text-sm text-white/72">
+                    Primeira vez: o navegador baixa o modelo de IA de voz.
+                  </div>
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3 text-sm text-white/72">
+                    Resultado: clipe vertical 1080p com legenda queimada ou sidecar SRT/VTT.
+                  </div>
+                </div>
+                {isGeneratingCaptions ? <Progress value={55} /> : null}
+                {captionPreviewText ? (
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/45">
+                      Preview da legenda
+                    </p>
+                    <p className="mt-3 text-sm leading-7 text-white/78">
+                      {captionPreviewText}
+                    </p>
+                  </div>
+                ) : null}
+                {(captionSrtUrl || captionVttUrl) ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {captionSrtUrl ? (
+                      <Button asChild size="sm" variant="secondary">
+                        <a
+                          download={`${captionBaseFileName || "smartclip-legenda"}.srt`}
+                          href={captionSrtUrl}
+                        >
+                          Baixar SRT
+                        </a>
+                      </Button>
+                    ) : null}
+                    {captionVttUrl ? (
+                      <Button asChild size="sm" variant="secondary">
+                        <a
+                          download={`${captionBaseFileName || "smartclip-legenda"}.vtt`}
+                          href={captionVttUrl}
+                        >
+                          Baixar VTT
+                        </a>
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="space-y-2 rounded-2xl border border-white/8 bg-black/20 p-4">
               <p className="text-sm text-muted-foreground">
                 {engineReady
@@ -843,6 +1173,15 @@ export function UploadPanel({ tool }: UploadPanelProps) {
               <div className="rounded-2xl border border-success/20 bg-success/10 p-4">
                 <p className="text-sm text-success">Resultado pronto para download</p>
                 <p className="mt-2 text-sm text-white/85">{downloadFileName}</p>
+                {supportsAutoCaptions ? (
+                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/55">
+                    {captionRenderMode === "burned"
+                      ? "Legenda automatica aplicada no video"
+                      : captionRenderMode === "sidecar"
+                        ? "Legenda automatica disponivel em SRT/VTT"
+                        : "Clip 1080p pronto"}
+                  </p>
+                ) : null}
                 <div className="mt-4 rounded-2xl border border-white/8 bg-black/20 p-3">
                   {downloadType === "audio" ? (
                     <audio className="w-full" controls src={downloadUrl} />
@@ -869,10 +1208,12 @@ export function UploadPanel({ tool }: UploadPanelProps) {
                 {isProcessing ? (
                   <>
                     <LoaderCircle className="h-4 w-4 animate-spin" />
-                    Processando
+                    {supportsAutoCaptions ? "Gerando clip com legenda" : "Processando"}
                   </>
                 ) : !selectedFile ? (
                   "Iniciar agora"
+                ) : supportsAutoCaptions ? (
+                  "Gerar clip 1080p com legenda"
                 ) : (
                   "Iniciar processamento"
                 )}

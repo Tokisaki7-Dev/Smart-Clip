@@ -11,6 +11,49 @@ export const blogCategories = [
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "como-gerar-clipes-1080p-com-legenda-automatica-para-redes-sociais",
+    title: "Como gerar clipes 1080p com legenda automatica para TikTok, Shorts e Reels",
+    excerpt:
+      "Um fluxo direto para sair do video bruto e chegar em um clipe curto com legenda automatica e formato social pronto.",
+    description:
+      "Veja como transformar videos em clipes 1080p com legenda automatica, framing vertical e exportacao pronta para redes sociais.",
+    category: "Clipes Virais",
+    publishedAt: "15 mar 2026",
+    readingTime: "8 min",
+    keywords: [
+      "clipe com legenda automatica",
+      "video com legenda para reels",
+      "clipe 1080p para tiktok",
+      "video para shorts com legenda"
+    ],
+    sections: [
+      {
+        heading: "O que faz esse tipo de ferramenta chamar tanta atencao",
+        paragraphs: [
+          "Muita gente nao quer apenas cortar. Quer publicar mais rapido com um resultado que ja pareca pronto. Quando o produto promete clipe curto, 1080p, vertical e legenda automatica na mesma pagina, o valor fica mais claro em segundos.",
+          "Essa clareza ajuda tanto no clique organico quanto no uso imediato depois que o usuario entra."
+        ]
+      },
+      {
+        heading: "Como o fluxo certo reduz abandono",
+        paragraphs: [
+          "Quanto menos troca de ferramenta, maior a chance de o usuario voltar. Se ele sobe o video, recebe um clip social e ainda leva a legenda no mesmo fluxo, o SmartClip deixa de ser teste e vira rotina.",
+          "Esse tipo de experiencia puxa mais recorrencia, mais projetos salvos e mais motivacao para subir de plano."
+        ],
+        bullets: [
+          "Use 30s para discovery mais agressiva",
+          "Use 45s quando o contexto precisar de mais tempo",
+          "Baixe SRT ou VTT se o navegador nao conseguir queimar a legenda no video"
+        ]
+      }
+    ],
+    relatedTools: [
+      "video-para-clipe-com-legenda-automatica",
+      "video-para-clipe-viral",
+      "video-horizontal-para-vertical"
+    ]
+  },
+  {
     slug: "como-transformar-video-longo-em-clipe-curto-viral",
     title: "Como transformar um video longo em clipe curto com mais chance de retenção",
     excerpt:

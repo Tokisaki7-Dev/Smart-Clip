@@ -17,14 +17,15 @@ import { SectionHeading } from "@/components/layout/section-heading";
 export const metadata = createMetadata({
   title: "SmartClip",
   description:
-    "Transforme videos longos em clipes virais, trailers curtos e formatos sociais com um fluxo premium, rapido e pronto para TikTok, Shorts, Reels e Stories.",
+    "Transforme videos em clipes 1080p com legenda automatica, formatos sociais e fluxo premium para TikTok, Shorts, Reels e Stories.",
   path: "/",
   keywords: [
     "cortar video online",
     "legenda automatica",
     "video para reels",
     "compressao de video",
-    "transformar video em clipe viral"
+    "transformar video em clipe viral",
+    "clipe com legenda automatica"
   ]
 });
 

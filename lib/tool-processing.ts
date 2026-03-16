@@ -16,6 +16,17 @@ export interface ProcessingPlan {
   outputLabel: string;
 }
 
+export interface CaptionSegment {
+  start: number;
+  end: number;
+  text: string;
+}
+
+export interface ResolvedTrimWindow {
+  trimStart: number;
+  trimEnd: number;
+}
+
 const defaultVideoPresetOptions = [
   "Original",
   "Reels 1080x1920",
@@ -26,6 +37,11 @@ const defaultVideoPresetOptions = [
 ] as const;
 
 const toolPresetMap: Partial<Record<ToolSlug, readonly string[]>> = {
+  "video-para-clipe-com-legenda-automatica": [
+    "Clip com legenda 30s",
+    "Clip com legenda 45s",
+    "Clip com legenda podcast 59s"
+  ],
   "video-para-clipe-viral": [
     "Clip viral 30s",
     "Clip viral 45s",
@@ -51,6 +67,8 @@ export function isAudioOnlyTool(slug: ToolSlug) {
 
 export function getDefaultPresetForTool(slug: ToolSlug) {
   switch (slug) {
+    case "video-para-clipe-com-legenda-automatica":
+      return "Clip com legenda 45s";
     case "video-para-clipe-viral":
       return "Clip viral 45s";
     case "cortar-video-automaticamente":
@@ -150,7 +168,7 @@ function resolveTrimWindow(params: {
   trimStart: number;
   trimEnd: number;
   duration: number;
-}) {
+}): ResolvedTrimWindow {
   const { toolSlug, preset, trimStart, trimEnd, duration } = params;
 
   if (duration <= 0 || hasManualTrim(trimStart, trimEnd, duration)) {
@@ -172,6 +190,12 @@ function resolveTrimWindow(params: {
   let start = 0;
 
   switch (toolSlug) {
+    case "video-para-clipe-com-legenda-automatica":
+      start =
+        duration > safeTarget + 10
+          ? Math.min(Math.max(duration * 0.16, 1.25), duration - safeTarget - 1)
+          : 0;
+      break;
     case "video-para-clipe-viral":
       start =
         duration > safeTarget + 8
@@ -203,26 +227,44 @@ function resolveTrimWindow(params: {
   };
 }
 
+export function resolveOutputWindow(params: {
+  toolSlug: ToolSlug;
+  preset: string;
+  trimStart: number;
+  trimEnd: number;
+  duration: number;
+}) {
+  return resolveTrimWindow(params);
+}
+
 function getVerticalPadFilter() {
   return "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:0x090b12";
 }
 
-function getVerticalBlurComplex(enhancement = "") {
-  const effectChain = [
-    "overlay=(W-w)/2:(H-h)/2",
-    enhancement || null
-  ]
+function getVerticalBlurComplex(enhancement = "", captionFilter?: string) {
+  const postOverlayChain = [enhancement || null, captionFilter || null]
     .filter(Boolean)
     .join(",");
 
-  return [
+  const outputLabel = postOverlayChain ? "[stage]" : "[v]";
+  const graph = [
     "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=18:8[bg]",
     "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease[fg]",
-    `[bg][fg]${effectChain}[v]`
-  ].join(";");
+    `[bg][fg]overlay=(W-w)/2:(H-h)/2${outputLabel}`
+  ];
+
+  if (postOverlayChain) {
+    graph.push(`${outputLabel}${postOverlayChain}[v]`);
+  }
+
+  return graph.join(";");
 }
 
 function getVisualEnhancement(preset: string, toolSlug: ToolSlug) {
+  if (toolSlug === "video-para-clipe-com-legenda-automatica") {
+    return "eq=contrast=1.08:saturation=1.2:brightness=0.02,unsharp=5:5:0.78:3:3:0.28";
+  }
+
   if (toolSlug === "video-para-clipe-viral") {
     return "eq=contrast=1.07:saturation=1.18:brightness=0.02,unsharp=5:5:0.7:3:3:0.25";
   }
@@ -243,6 +285,14 @@ function getVisualEnhancement(preset: string, toolSlug: ToolSlug) {
 }
 
 function getPlaybackSpeed(preset: string, toolSlug: ToolSlug) {
+  if (toolSlug === "video-para-clipe-com-legenda-automatica") {
+    if (preset === "Clip com legenda 30s") {
+      return 1.03;
+    }
+
+    return 1.01;
+  }
+
   if (toolSlug === "criar-trailer-curto") {
     return preset === "Trailer 15s" ? 1.07 : 1.04;
   }
@@ -259,11 +309,15 @@ function getSimpleVideoFilter(params: {
   const filters: string[] = [];
 
   if (
+    preset === "Clip com legenda 30s" ||
+    preset === "Clip com legenda 45s" ||
+    preset === "Clip com legenda podcast 59s" ||
     preset === "Reels 1080x1920" ||
     preset === "Shorts 1080x1920" ||
     preset === "TikTok 1080x1920" ||
     preset === "Stories 1080x1920" ||
     preset === "Vertical com crop central" ||
+    toolSlug === "video-para-clipe-com-legenda-automatica" ||
     toolSlug === "video-para-reels" ||
     toolSlug === "video-para-shorts" ||
     toolSlug === "video-para-tiktok" ||
@@ -291,6 +345,10 @@ function getSimpleVideoFilter(params: {
 }
 
 function getVideoBitrate(toolSlug: ToolSlug, qualityMode: QualityMode, preset: string) {
+  if (toolSlug === "video-para-clipe-com-legenda-automatica") {
+    return qualityMode === "higher" ? "3600k" : qualityMode === "smaller" ? "2200k" : "3000k";
+  }
+
   if (
     toolSlug === "comprimir-video" ||
     toolSlug === "video-para-whatsapp" ||
@@ -331,10 +389,51 @@ function getAudioFilter(preset: string, toolSlug: ToolSlug) {
 
 function shouldUseVerticalComplex(toolSlug: ToolSlug, preset: string) {
   return (
+    toolSlug === "video-para-clipe-com-legenda-automatica" ||
     toolSlug === "video-para-clipe-viral" ||
     toolSlug === "video-horizontal-para-vertical" ||
     preset === "Vertical com blur"
   );
+}
+
+function escapeDrawtextText(text: string) {
+  return text
+    .replace(/\\/g, "\\\\")
+    .replace(/:/g, "\\:")
+    .replace(/'/g, "\\'")
+    .replace(/%/g, "\\%")
+    .replace(/,/g, "\\,")
+    .replace(/\r?\n/g, "\\n");
+}
+
+function buildCaptionDrawtextFilter(
+  captions: CaptionSegment[],
+  fontFileName: string
+) {
+  return captions
+    .map((caption) => {
+      const safeStart = Math.max(0, caption.start);
+      const safeEnd = Math.max(safeStart + 0.2, caption.end);
+      const escapedText = escapeDrawtextText(caption.text);
+
+      return [
+        "drawtext",
+        `fontfile=${fontFileName}`,
+        `text='${escapedText}'`,
+        "fontcolor=white",
+        "fontsize=46",
+        "line_spacing=10",
+        "borderw=4",
+        "bordercolor=0x08101A@0.95",
+        "box=1",
+        "boxcolor=0x08101A@0.40",
+        "boxborderw=18",
+        "x=(w-text_w)/2",
+        "y=h-(text_h*2.7)",
+        `enable='between(t,${safeStart.toFixed(2)},${safeEnd.toFixed(2)})'`
+      ].join(":");
+    })
+    .join(",");
 }
 
 export function buildProcessingPlan(params: {
@@ -346,6 +445,10 @@ export function buildProcessingPlan(params: {
   trimStart: number;
   trimEnd: number;
   duration?: number;
+  burnedCaptions?: {
+    captions: CaptionSegment[];
+    fontFileName: string;
+  };
 }): ProcessingPlan {
   const {
     inputFileName,
@@ -355,7 +458,8 @@ export function buildProcessingPlan(params: {
     toolSlug,
     trimStart,
     trimEnd,
-    duration = 0
+    duration = 0,
+    burnedCaptions
   } = params;
   const resolvedTrim = resolveTrimWindow({
     toolSlug,
@@ -399,11 +503,18 @@ export function buildProcessingPlan(params: {
   }
 
   const args = [...trimArgs, "-i", inputFsName];
+  const captionFilter =
+    burnedCaptions && burnedCaptions.captions.length > 0
+      ? buildCaptionDrawtextFilter(
+          burnedCaptions.captions,
+          burnedCaptions.fontFileName
+        )
+      : "";
 
   if (shouldUseVerticalComplex(toolSlug, preset)) {
     args.push(
       "-filter_complex",
-      getVerticalBlurComplex(getVisualEnhancement(preset, toolSlug)),
+      getVerticalBlurComplex(getVisualEnhancement(preset, toolSlug), captionFilter),
       "-map",
       "[v]",
       "-map",
@@ -416,8 +527,10 @@ export function buildProcessingPlan(params: {
       qualityMode
     });
 
-    if (videoFilter) {
-      args.push("-vf", videoFilter);
+    const combinedFilter = [videoFilter, captionFilter].filter(Boolean).join(",");
+
+    if (combinedFilter) {
+      args.push("-vf", combinedFilter);
     }
   }
 

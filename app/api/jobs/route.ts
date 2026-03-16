@@ -13,6 +13,10 @@ const jobSchema = z.object({
 });
 
 function inferJobType(toolSlug: string) {
+  if (toolSlug === "video-para-clipe-com-legenda-automatica") {
+    return "auto_caption";
+  }
+
   if (toolSlug === "extrair-audio" || toolSlug === "mp4-para-mp3") {
     return "extract_audio";
   }
