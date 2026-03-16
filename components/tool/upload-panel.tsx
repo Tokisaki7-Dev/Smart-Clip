@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Download,
   LoaderCircle,
-  Scissors,
   Upload,
   WandSparkles
 } from "lucide-react";
@@ -295,7 +294,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     "idle"
   );
   const [isGeneratingCaptions, setIsGeneratingCaptions] = useState(false);
-  const [logLines, setLogLines] = useState<string[]>([]);
 
   const queue = useMemo(() => {
     if (preset.includes("WhatsApp")) {
@@ -380,7 +378,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     }
     setCaptionSrtUrl(null);
     setCaptionVttUrl(null);
-    setLogLines([]);
     setDuration(0);
     setTrimStart(0);
     setTrimEnd(0);
@@ -418,10 +415,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     };
   }, []);
 
-  const appendLog = (message: string) => {
-    setLogLines((current) => [...current.slice(-5), message]);
-  };
-
   const loadEngine = async () => {
     if (ffmpegRef.current?.loaded) {
       setEngineReady(true);
@@ -432,11 +425,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     ffmpegRef.current = ffmpeg;
 
     if (!loadedCallbacksRef.current) {
-      ffmpeg.on("log", ({ message }) => {
-        if (message.trim()) {
-          appendLog(message.trim());
-        }
-      });
       ffmpeg.on("progress", ({ progress: currentProgress }) => {
         setProcessingProgress(Math.round(currentProgress * 100));
       });
@@ -513,7 +501,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
         ? "Arquivo pronto para clip 1080p. A legenda automatica sera criada quando voce iniciar o processamento."
         : ""
     );
-    setLogLines([]);
   };
 
   const handleLoadedMetadata = (element: HTMLVideoElement) => {
@@ -739,7 +726,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     setProcessingProgress(0);
     setProgress(36);
     setStatusMessage("Preparando arquivos para processamento...");
-    setLogLines([]);
     setCaptionRenderMode("idle");
     setIsGeneratingCaptions(false);
 
@@ -1345,7 +1331,7 @@ export function UploadPanel({ tool }: UploadPanelProps) {
                   </span>
                 </div>
                 <p className="text-sm leading-7 text-white/80">
-                  O processamento acontece nesta pagina. Aguarde os logs e a barra chegarem ao fim para liberar o download.
+                  O processamento acontece nesta pagina. Aguarde a barra chegar ao fim para liberar o download.
                 </p>
                 <Progress value={processingProgress} />
                 <div className="grid gap-3 sm:grid-cols-3">
@@ -1384,22 +1370,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
               <p className="text-sm leading-7 text-white/78">{syncMessage}</p>
               {isSyncing ? <Progress value={80} /> : null}
             </div>
-
-            {logLines.length > 0 ? (
-              <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                <div className="mb-3 flex items-center gap-2 text-primary">
-                  <Scissors className="h-4 w-4" />
-                  <span className="text-xs uppercase tracking-[0.2em]">
-                    Log do processamento
-                  </span>
-                </div>
-                <div className="space-y-2 text-xs leading-6 text-white/70">
-                  {logLines.map((line, index) => (
-                    <p key={`${line}-${index}`}>{line}</p>
-                  ))}
-                </div>
-              </div>
-            ) : null}
 
             {activeOutput ? (
               <div className="rounded-2xl border border-success/20 bg-success/10 p-4">
