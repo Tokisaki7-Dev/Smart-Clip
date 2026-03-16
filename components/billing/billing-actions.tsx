@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 interface BillingActionsProps {
   currentPlan: string;
   initialEmail?: string;
+  isAuthenticated: boolean;
   packs: AutomationPack[];
 }
 
@@ -26,6 +27,7 @@ const paymentMethodOptions: Array<{ value: PaymentMethod; label: string }> = [
 export function BillingActions({
   currentPlan,
   initialEmail = "",
+  isAuthenticated,
   packs
 }: BillingActionsProps) {
   const [checkoutEmail, setCheckoutEmail] = useState(initialEmail);
@@ -52,6 +54,12 @@ export function BillingActions({
 
   const handleCheckout = (planId: string, creditPackId?: string) => {
     startCheckoutTransition(async () => {
+      if (!isAuthenticated) {
+        setStatusMessage("Entre ou crie sua conta antes de abrir o checkout.");
+        window.location.href = "/signup?next=/billing";
+        return;
+      }
+
       setStatusMessage("Criando sessao de checkout...");
 
       try {
@@ -178,7 +186,7 @@ export function BillingActions({
               Iniciando
             </>
           ) : (
-            "Iniciar checkout"
+            isAuthenticated ? "Iniciar checkout" : "Entrar para comprar"
           )}
         </Button>
         <Button
@@ -214,7 +222,7 @@ export function BillingActions({
                 onClick={() => handleCheckout("credits", pack.id)}
                 variant="secondary"
               >
-                Comprar creditos
+                {isAuthenticated ? "Comprar creditos" : "Entrar para comprar"}
               </Button>
             </div>
           ))}

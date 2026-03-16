@@ -54,6 +54,7 @@ export default async function BillingPage() {
             <BillingActions
               currentPlan={billingSummary.currentPlan}
               initialEmail={user?.email}
+              isAuthenticated={Boolean(user)}
               packs={automationPacks}
             />
           </CardContent>

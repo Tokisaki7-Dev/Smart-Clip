@@ -53,6 +53,13 @@ export async function POST(request: Request) {
         data: { user }
       } = await supabase.auth.getUser();
 
+      if (!user) {
+        return NextResponse.json(
+          { ok: false, error: "login_required_for_checkout" },
+          { status: 401 }
+        );
+      }
+
       customerEmail = customerEmail || user?.email || undefined;
       userId = user?.id || null;
 
