@@ -3,7 +3,6 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   CheckCircle2,
-  Cpu,
   Download,
   LoaderCircle,
   Scissors,
@@ -137,24 +136,6 @@ function getResolutionLabel(toolSlug: ToolSlug, preset: string, outputFormat: Ou
   return "original";
 }
 
-function getPremiumQueueSettings(toolSlug: ToolSlug, preset: string) {
-  const blueprint = getPresetBlueprints(toolSlug).find((item) => item.label === preset);
-  const multiClipCount = blueprint?.multiClipCount || 1;
-  const captionsRequested = supportsToolCapability(toolSlug, "autoCaption");
-  const label =
-    toolSlug === "video-para-clipe-com-legenda-automatica"
-      ? "Enviar para worker com legenda"
-      : multiClipCount > 1
-        ? `Gerar ${multiClipCount} saidas no worker`
-        : "Enviar para fila premium";
-
-  return {
-    captionsRequested,
-    multiClipCount,
-    label
-  };
-}
-
 async function postJson<T>(url: string, payload: unknown): Promise<ApiResult<T | ErrorPayload>> {
   const response = await fetch(url, {
     method: "POST",
@@ -267,7 +248,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
   const isAudioTool = isAudioOnlyTool(tool.slug);
   const engineProfile = useMemo(() => getToolEngineProfile(tool.slug), [tool.slug]);
   const supportsAutoCaptions = engineProfile.autoCaption;
-  const supportsServerPremium = engineProfile.workerEnabled;
   const formatOptions = useMemo(() => getFormatOptions(tool.slug), [tool.slug]);
   const presetOptions = useMemo(() => getPresetOptions(tool.slug), [tool.slug]);
   const isSmartTool = engineProfile.capabilities.length > 1;
@@ -292,7 +272,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
   const [engineReady, setEngineReady] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isQueueingPremium, setIsQueueingPremium] = useState(false);
   const [duration, setDuration] = useState(0);
   const [trimStart, setTrimStart] = useState(0);
   const [trimEnd, setTrimEnd] = useState(0);
@@ -629,71 +608,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     return {
       sourceVideoId
     };
-  };
-
-  const queuePremiumServerJob = async () => {
-    if (!selectedFile) {
-      setStatusMessage("Escolha um arquivo antes de enviar para o worker premium.");
-      return;
-    }
-
-    setIsQueueingPremium(true);
-    setSyncMessage("Enviando arquivo original para a fila premium...");
-
-    try {
-      const prepared = await prepareSourceVideoRecord(selectedFile);
-
-      if ("unauthorized" in prepared) {
-        setSyncMessage(
-          "Entre para usar o worker premium, salvar os clips automaticos e baixar as saidas pelo dashboard."
-        );
-        return;
-      }
-
-      await persistPreset();
-
-      const premiumSettings = getPremiumQueueSettings(tool.slug, preset);
-      const jobResponse = await postJson<JobCreateResponse>("/api/jobs", {
-        toolSlug: tool.slug,
-        sourceFile: selectedFile.name,
-        sourceVideoId: prepared.sourceVideoId,
-        preset,
-        mode: "premium",
-        outputFormat,
-        qualityMode,
-        trimStart,
-        trimEnd: duration > 0 ? trimEnd : 0,
-        duration,
-        captionsRequested: premiumSettings.captionsRequested,
-        multiClipCount: premiumSettings.multiClipCount
-      });
-
-      if (!jobResponse.ok) {
-        const message = getApiError(jobResponse.data, "premium_job_failed");
-        if (message === "monthly_automation_limit_reached") {
-          throw new Error(
-            "Voce atingiu o limite mensal de automacoes do seu plano. Faça upgrade ou use creditos."
-          );
-        }
-
-        throw new Error(message);
-      }
-
-      setStatusMessage(
-        "Job premium criado. O worker separado vai processar o arquivo e publicar os resultados no dashboard."
-      );
-      setSyncMessage(
-        "Fila premium ativa. Abra o dashboard para acompanhar status, clips concluidos e downloads."
-      );
-    } catch (error) {
-      setSyncMessage(
-        error instanceof Error
-          ? `Nao foi possivel criar o job premium: ${error.message}`
-          : "Nao foi possivel criar o job premium."
-      );
-    } finally {
-      setIsQueueingPremium(false);
-    }
   };
 
   const syncWithDashboard = async (sourceFile: File, outputs: GeneratedOutput[]) => {
@@ -1054,7 +968,7 @@ export function UploadPanel({ tool }: UploadPanelProps) {
       setProcessingProgress(100);
       setStatusMessage(
         nextOutputs.length > 1
-          ? `${nextOutputs.length} saidas prontas. Baixe cada uma delas ou envie o video para o worker premium.`
+          ? `${nextOutputs.length} saidas prontas. Baixe cada uma delas ou refaça o preset para gerar uma nova variacao.`
           : `Resultado pronto em ${firstOutput.label}. Baixe agora ou processe outro preset.`
       );
 
@@ -1352,30 +1266,6 @@ export function UploadPanel({ tool }: UploadPanelProps) {
               </div>
             </div>
 
-            {supportsServerPremium ? (
-              <div className="space-y-3 rounded-2xl border border-primary/20 bg-primary/8 p-4">
-                <div className="flex items-center gap-3 text-primary">
-                  <Cpu className="h-5 w-5" />
-                  <span className="text-sm uppercase tracking-[0.2em]">
-                    Worker premium
-                  </span>
-                </div>
-                <p className="text-sm leading-7 text-white/80">
-                  Envie o original para o worker separado quando quiser deteccao
-                  automatica de trechos, fila priorizada por plano e saidas para
-                  acompanhar no dashboard.
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3 text-sm text-white/68">
-                    Melhor para clipes automaticos, podcast em cortes e social em volume.
-                  </div>
-                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3 text-sm text-white/68">
-                    Resultados aparecem no dashboard conforme o worker finaliza cada job.
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
             {supportsAutoCaptions ? (
               <div className="space-y-3 rounded-2xl border border-secondary/20 bg-secondary/10 p-4">
                 <p className="text-sm uppercase tracking-[0.2em] text-secondary">
@@ -1445,6 +1335,47 @@ export function UploadPanel({ tool }: UploadPanelProps) {
               ) : null}
               {isProcessing ? <Progress value={processingProgress} /> : null}
             </div>
+
+            {isProcessing ? (
+              <div className="space-y-4 rounded-2xl border border-primary/20 bg-primary/8 p-5">
+                <div className="flex items-center gap-3 text-primary">
+                  <LoaderCircle className="h-5 w-5 animate-spin" />
+                  <span className="text-sm uppercase tracking-[0.2em]">
+                    Processando na ferramenta
+                  </span>
+                </div>
+                <p className="text-sm leading-7 text-white/80">
+                  O processamento acontece nesta pagina. Aguarde os logs e a barra chegarem ao fim para liberar o download.
+                </p>
+                <Progress value={processingProgress} />
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">
+                      Etapa
+                    </p>
+                    <p className="mt-2 text-sm text-white/82">
+                      {supportsAutoCaptions && isGeneratingCaptions
+                        ? "Legenda automatica"
+                        : "FFmpeg local"}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">
+                      Progresso
+                    </p>
+                    <p className="mt-2 text-sm text-white/82">{processingProgress}%</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">
+                      Saidas
+                    </p>
+                    <p className="mt-2 text-sm text-white/82">
+                      {mediaAnalysis.windows.length > 1 ? `${mediaAnalysis.windows.length} previstas` : "1 prevista"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             <div className="space-y-2 rounded-2xl border border-primary/20 bg-primary/8 p-4">
               <p className="text-sm uppercase tracking-[0.2em] text-primary">
@@ -1557,9 +1488,9 @@ export function UploadPanel({ tool }: UploadPanelProps) {
               </div>
             ) : null}
 
-            <div className={`grid gap-3 ${supportsServerPremium ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+            <div className="grid gap-3 sm:grid-cols-2">
               <Button
-                disabled={isProcessing || isSyncing || isQueueingPremium}
+                disabled={isProcessing || isSyncing}
                 onClick={handlePrimaryAction}
               >
                 {isProcessing ? (
@@ -1575,31 +1506,8 @@ export function UploadPanel({ tool }: UploadPanelProps) {
                   "Iniciar processamento"
                 )}
               </Button>
-              {supportsServerPremium ? (
-                <Button
-                  disabled={isProcessing || isSyncing || isQueueingPremium}
-                  onClick={() => {
-                    if (!selectedFile) {
-                      fileInputRef.current?.click();
-                      return;
-                    }
-
-                    void queuePremiumServerJob();
-                  }}
-                  variant="secondary"
-                >
-                  {isQueueingPremium ? (
-                    <>
-                      <LoaderCircle className="h-4 w-4 animate-spin" />
-                      Enviando
-                    </>
-                  ) : (
-                    getPremiumQueueSettings(tool.slug, preset).label
-                  )}
-                </Button>
-              ) : null}
               <Button
-                disabled={isSyncing || isQueueingPremium}
+                disabled={isSyncing || isProcessing}
                 onClick={() => {
                   void persistPreset();
                 }}

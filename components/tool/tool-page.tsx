@@ -117,7 +117,9 @@ export function ToolPage({ tool }: ToolPageProps) {
                 imediato e retorno. Por isso a pagina combina copy comercial,
                 upload visivel e CTA forte no topo.
               </p>
-              <p className="text-sm leading-7 text-white/55">{engineProfile.premiumStory}</p>
+              <p className="text-sm leading-7 text-white/55">
+                {tool.promise}
+              </p>
             </CardContent>
           </Card>
 
