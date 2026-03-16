@@ -43,6 +43,37 @@ function mapSubscriptionStatus(value?: string | null) {
   }
 }
 
+function resolveSubscriptionStatus(params: {
+  providerStatus: ReturnType<typeof mapPaymentStatus>;
+  rawSubscriptionStatus?: string | null;
+}) {
+  const normalizedSubscriptionStatus = params.rawSubscriptionStatus
+    ? mapSubscriptionStatus(params.rawSubscriptionStatus)
+    : null;
+
+  if (normalizedSubscriptionStatus === "trial") {
+    return "trial" as const;
+  }
+
+  if (normalizedSubscriptionStatus === "active") {
+    return params.providerStatus === "paid" ? ("active" as const) : null;
+  }
+
+  if (normalizedSubscriptionStatus === "past_due") {
+    return "past_due" as const;
+  }
+
+  if (normalizedSubscriptionStatus === "canceled") {
+    return "canceled" as const;
+  }
+
+  if (params.providerStatus === "paid") {
+    return "active" as const;
+  }
+
+  return null;
+}
+
 function parseReferenceId(referenceId?: string | null) {
   const parts = (referenceId || "").split(":");
 
@@ -126,6 +157,10 @@ export async function POST(request: Request) {
       body?.charges?.[0]?.status ||
       body?.payment_response?.status
   );
+  const nextSubscriptionStatus = resolveSubscriptionStatus({
+    providerStatus,
+    rawSubscriptionStatus: body?.subscription_status || body?.subscription?.status || body?.status
+  });
 
   if (reference?.paymentAttemptId) {
     await admin
@@ -138,12 +173,15 @@ export async function POST(request: Request) {
       .eq("id", reference.paymentAttemptId);
   }
 
-  if (reference?.userId && reference.planId !== "credits" && providerStatus !== "failed") {
+  if (reference?.userId && reference.planId !== "credits" && nextSubscriptionStatus) {
     const normalizedPlan = normalizePlanId(reference.planId);
     const externalSubscriptionId =
       body?.subscription_id || body?.subscription?.id || body?.recurrence_id || null;
     const currentPeriodStart = new Date().toISOString();
-    const currentPeriodEnd = getNextBillingDate();
+    const currentPeriodEnd =
+      nextSubscriptionStatus === "canceled"
+        ? new Date().toISOString()
+        : getNextBillingDate();
 
     const { data: existingSubscription } = await admin
       .from("subscriptions")
@@ -159,19 +197,20 @@ export async function POST(request: Request) {
         .from("subscriptions")
         .update({
           plan_id: normalizedPlan,
-          status: mapSubscriptionStatus(body?.subscription_status || body?.status),
+          status: nextSubscriptionStatus,
           external_id: externalSubscriptionId,
           current_period_start: currentPeriodStart,
           current_period_end: currentPeriodEnd,
-          cancel_at_period_end: false,
-          canceled_at: null
+          cancel_at_period_end: nextSubscriptionStatus === "canceled",
+          canceled_at:
+            nextSubscriptionStatus === "canceled" ? new Date().toISOString() : null
         })
         .eq("id", existingSubscription.id);
     } else {
       await admin.from("subscriptions").insert({
         user_id: reference.userId,
         plan_id: normalizedPlan,
-        status: mapSubscriptionStatus(body?.subscription_status || body?.status),
+        status: nextSubscriptionStatus,
         provider: "pagbank",
         external_id: externalSubscriptionId,
         current_period_start: currentPeriodStart,
@@ -182,7 +221,7 @@ export async function POST(request: Request) {
     await admin
       .from("users")
       .update({
-        current_plan: normalizedPlan
+        current_plan: nextSubscriptionStatus === "canceled" ? "free" : normalizedPlan
       })
       .eq("id", reference.userId);
   }

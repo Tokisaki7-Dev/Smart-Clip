@@ -83,6 +83,22 @@ function getCheckoutLink(links: PagBankCheckoutLink[], relation: string) {
   return links.find((item) => item.rel === relation)?.href || null;
 }
 
+function buildCheckoutReturnUrl(input: PagBankCheckoutSessionInput) {
+  const attemptId = input.referenceId.split(":").at(-1);
+  const searchParams = new URLSearchParams();
+
+  if (attemptId) {
+    searchParams.set("attempt", attemptId);
+  }
+
+  if (input.planId) {
+    searchParams.set("plan", input.planId);
+  }
+
+  const query = searchParams.toString();
+  return `${getAppUrl()}/billing/success${query ? `?${query}` : ""}`;
+}
+
 export async function createPagBankCheckoutSession(input: PagBankCheckoutSessionInput) {
   if (!isPagBankConfigured()) {
     return {
@@ -124,8 +140,8 @@ export async function createPagBankCheckoutSession(input: PagBankCheckoutSession
       ],
       notification_urls: [`${getAppUrl()}/api/billing/webhooks/pagbank`],
       payment_notification_urls: [`${getAppUrl()}/api/billing/webhooks/pagbank`],
-      redirect_url: `${getAppUrl()}/billing`,
-      return_url: `${getAppUrl()}/billing`,
+      redirect_url: buildCheckoutReturnUrl(input),
+      return_url: buildCheckoutReturnUrl(input),
       recurrence_plan: buildRecurrencePlan(input)
     })
   });
