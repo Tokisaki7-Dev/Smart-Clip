@@ -1,20 +1,29 @@
 "use client";
 
-import type {
-  AutomaticSpeechRecognitionOutput,
-  AutomaticSpeechRecognitionPipelineType
-} from "@huggingface/transformers";
-
 import type { CaptionSegment } from "@/lib/tool-processing";
 
 const CAPTION_MODEL_ID = "onnx-community/whisper-tiny";
-
-let transcriberPromise: Promise<AutomaticSpeechRecognitionPipelineType> | null = null;
 
 type WhisperChunk = {
   timestamp: [number, number];
   text: string;
 };
+
+type AutomaticSpeechRecognitionOutputLike = {
+  text: string;
+  chunks?: WhisperChunk[];
+};
+
+type AutomaticSpeechRecognitionPipelineLike = (
+  audio: string,
+  options?: Record<string, unknown>
+) => Promise<AutomaticSpeechRecognitionOutputLike>;
+
+let transcriberPromise: Promise<AutomaticSpeechRecognitionPipelineLike> | null = null;
+const importFromUrl = new Function(
+  "specifier",
+  "return import(specifier)"
+) as (specifier: string) => Promise<unknown>;
 
 function wrapCaptionText(text: string) {
   const words = text.split(/\s+/).filter(Boolean);
@@ -102,16 +111,21 @@ async function getTranscriber() {
   }
 
   transcriberPromise = (async () => {
-    const transformersModule = await import("@huggingface/transformers");
-    const useWebGpu = typeof navigator !== "undefined" && "gpu" in navigator;
-    const env = transformersModule.env as {
-      allowLocalModels: boolean;
+    const transformersModule = (await importFromUrl(
+      "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1"
+    )) as {
+      env: {
+        allowLocalModels: boolean;
+      };
+      pipeline: (
+        task: string,
+        model: string,
+        options: Record<string, string>
+      ) => Promise<AutomaticSpeechRecognitionPipelineLike>;
     };
-    const createPipeline = transformersModule.pipeline as (
-      task: string,
-      model: string,
-      options: Record<string, string>
-    ) => Promise<AutomaticSpeechRecognitionPipelineType>;
+    const useWebGpu = typeof navigator !== "undefined" && "gpu" in navigator;
+    const env = transformersModule.env;
+    const createPipeline = transformersModule.pipeline;
 
     env.allowLocalModels = false;
 
@@ -133,7 +147,7 @@ export async function generateAutomaticCaptions(audioBlob: Blob) {
       return_timestamps: "word",
       chunk_length_s: 20,
       stride_length_s: 4
-    })) as AutomaticSpeechRecognitionOutput;
+    })) as AutomaticSpeechRecognitionOutputLike;
 
     const chunks = Array.isArray(output.chunks) ? (output.chunks as WhisperChunk[]) : [];
     const captions = groupCaptionChunks(chunks);
