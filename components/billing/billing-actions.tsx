@@ -36,6 +36,20 @@ export function BillingActions({
   const [isSubmittingCheckout, startCheckoutTransition] = useTransition();
   const [isCancelling, startCancelTransition] = useTransition();
 
+  const readJsonResponse = async <T,>(response: Response): Promise<T | null> => {
+    const rawText = await response.text();
+
+    if (!rawText.trim()) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(rawText) as T;
+    } catch {
+      throw new Error("O servidor retornou uma resposta invalida. Tente novamente.");
+    }
+  };
+
   const handleCheckout = (planId: string, creditPackId?: string) => {
     startCheckoutTransition(async () => {
       setStatusMessage("Criando sessao de checkout...");
@@ -54,13 +68,16 @@ export function BillingActions({
             trialDays: planId === "starter" ? 30 : 0
           })
         });
-        const data = (await response.json()) as {
+        const data = (await readJsonResponse<{
           ok?: boolean;
           error?: string;
           session?: {
             redirectUrl?: string | null;
             message?: string;
           };
+        }>(response)) || {
+          ok: false,
+          error: "Resposta vazia do servidor ao iniciar checkout."
         };
 
         if (!response.ok || !data.ok) {
@@ -99,9 +116,12 @@ export function BillingActions({
             action: "cancel"
           })
         });
-        const data = (await response.json()) as {
+        const data = (await readJsonResponse<{
           ok?: boolean;
           error?: string;
+        }>(response)) || {
+          ok: false,
+          error: "Resposta vazia do servidor ao cancelar assinatura."
         };
 
         if (!response.ok || !data.ok) {
