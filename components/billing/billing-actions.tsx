@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 
 interface BillingActionsProps {
   currentPlan: string;
+  initialEmail?: string;
   packs: AutomationPack[];
 }
 
@@ -22,8 +23,12 @@ const paymentMethodOptions: Array<{ value: PaymentMethod; label: string }> = [
   { value: "debit_online", label: "Debito online" }
 ];
 
-export function BillingActions({ currentPlan, packs }: BillingActionsProps) {
-  const [checkoutEmail, setCheckoutEmail] = useState("");
+export function BillingActions({
+  currentPlan,
+  initialEmail = "",
+  packs
+}: BillingActionsProps) {
+  const [checkoutEmail, setCheckoutEmail] = useState(initialEmail);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("credit_card");
   const [statusMessage, setStatusMessage] = useState(
     "Escolha a forma de pagamento para iniciar checkout ou comprar creditos."

@@ -242,7 +242,7 @@ function getVerticalBlurComplex(enhancement = "", captionFilter?: string) {
 
   const outputLabel = postOverlayChain ? "[stage]" : "[v]";
   const graph = [
-    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=18:8[bg]",
+    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=8:2[bg]",
     "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease[fg]",
     `[bg][fg]overlay=(W-w)/2:(H-h)/2${outputLabel}`
   ];
@@ -256,39 +256,39 @@ function getVerticalBlurComplex(enhancement = "", captionFilter?: string) {
 
 function getVisualEnhancement(preset: string, toolSlug: ToolSlug) {
   if (toolSlug === "video-para-anuncio-curto") {
-    return "eq=contrast=1.1:saturation=1.16:brightness=0.02,unsharp=5:5:0.82:3:3:0.3";
+    return "eq=contrast=1.08:saturation=1.14:brightness=0.02";
   }
 
   if (toolSlug === "depoimento-para-anuncio") {
-    return "eq=contrast=1.08:saturation=1.14:brightness=0.02,unsharp=5:5:0.76:3:3:0.26";
+    return "eq=contrast=1.07:saturation=1.12:brightness=0.02";
   }
 
   if (toolSlug === "podcast-para-clipes") {
-    return "eq=contrast=1.06:saturation=1.12:brightness=0.015,unsharp=5:5:0.74:3:3:0.24";
+    return "eq=contrast=1.05:saturation=1.1:brightness=0.015";
   }
 
   if (toolSlug === "aula-para-clipes") {
-    return "eq=contrast=1.05:saturation=1.1:brightness=0.015,unsharp=5:5:0.72:3:3:0.24";
+    return "eq=contrast=1.04:saturation=1.08:brightness=0.015";
   }
 
   if (toolSlug === "gerar-varios-clipes-automaticos") {
-    return "eq=contrast=1.07:saturation=1.16:brightness=0.02,unsharp=5:5:0.72:3:3:0.26";
+    return "eq=contrast=1.06:saturation=1.14:brightness=0.02";
   }
 
   if (toolSlug === "gerar-ganchos-de-video") {
-    return "eq=contrast=1.1:saturation=1.18:brightness=0.02,unsharp=5:5:0.8:3:3:0.28";
+    return "eq=contrast=1.08:saturation=1.16:brightness=0.02";
   }
 
   if (toolSlug === "video-para-clipe-com-legenda-automatica") {
-    return "eq=contrast=1.08:saturation=1.2:brightness=0.02,unsharp=5:5:0.78:3:3:0.28";
+    return "eq=contrast=1.07:saturation=1.16:brightness=0.02";
   }
 
   if (toolSlug === "video-para-clipe-viral") {
-    return "eq=contrast=1.07:saturation=1.18:brightness=0.02,unsharp=5:5:0.7:3:3:0.25";
+    return "eq=contrast=1.06:saturation=1.14:brightness=0.02";
   }
 
   if (toolSlug === "criar-trailer-curto") {
-    return "eq=contrast=1.09:saturation=1.1:brightness=0.015,unsharp=5:5:0.75:3:3:0.3";
+    return "eq=contrast=1.07:saturation=1.08:brightness=0.015";
   }
 
   if (toolSlug === "video-para-status-de-whatsapp") {
@@ -407,11 +407,11 @@ function getSimpleVideoFilter(params: {
 
 function getVideoBitrate(toolSlug: ToolSlug, qualityMode: QualityMode, preset: string) {
   if (toolSlug === "video-para-anuncio-curto") {
-    return qualityMode === "higher" ? "3400k" : qualityMode === "smaller" ? "2000k" : "2800k";
+    return qualityMode === "higher" ? "3000k" : qualityMode === "smaller" ? "1700k" : "2300k";
   }
 
   if (toolSlug === "depoimento-para-anuncio") {
-    return qualityMode === "higher" ? "3200k" : qualityMode === "smaller" ? "1900k" : "2500k";
+    return qualityMode === "higher" ? "2800k" : qualityMode === "smaller" ? "1600k" : "2200k";
   }
 
   if (
@@ -420,11 +420,11 @@ function getVideoBitrate(toolSlug: ToolSlug, qualityMode: QualityMode, preset: s
     toolSlug === "aula-para-clipes" ||
     toolSlug === "gerar-ganchos-de-video"
   ) {
-    return qualityMode === "higher" ? "3300k" : qualityMode === "smaller" ? "1800k" : "2600k";
+    return qualityMode === "higher" ? "2900k" : qualityMode === "smaller" ? "1500k" : "2100k";
   }
 
   if (toolSlug === "video-para-clipe-com-legenda-automatica") {
-    return qualityMode === "higher" ? "3600k" : qualityMode === "smaller" ? "2200k" : "3000k";
+    return qualityMode === "higher" ? "3200k" : qualityMode === "smaller" ? "1800k" : "2400k";
   }
 
   if (
@@ -437,11 +437,11 @@ function getVideoBitrate(toolSlug: ToolSlug, qualityMode: QualityMode, preset: s
   }
 
   if (toolSlug === "video-para-clipe-viral" || toolSlug === "video-horizontal-para-vertical") {
-    return qualityMode === "higher" ? "3200k" : qualityMode === "smaller" ? "1600k" : "2400k";
+    return qualityMode === "higher" ? "2800k" : qualityMode === "smaller" ? "1500k" : "2100k";
   }
 
   if (toolSlug === "criar-trailer-curto") {
-    return qualityMode === "higher" ? "3000k" : qualityMode === "smaller" ? "1500k" : "2200k";
+    return qualityMode === "higher" ? "2600k" : qualityMode === "smaller" ? "1400k" : "1900k";
   }
 
   if (qualityMode === "smaller") {
@@ -468,18 +468,13 @@ function getAudioFilter(preset: string, toolSlug: ToolSlug) {
 
 function shouldUseVerticalComplex(toolSlug: ToolSlug, preset: string) {
   return (
-    toolSlug === "video-para-clipe-com-legenda-automatica" ||
-    toolSlug === "gerar-varios-clipes-automaticos" ||
-    toolSlug === "podcast-para-clipes" ||
-    toolSlug === "video-para-anuncio-curto" ||
-    toolSlug === "video-para-clipe-viral" ||
     toolSlug === "video-horizontal-para-vertical" ||
-    toolSlug === "gerar-ganchos-de-video" ||
-    toolSlug === "aula-para-clipes" ||
-    toolSlug === "depoimento-para-anuncio" ||
-    toolSlug === "video-para-status-de-whatsapp" ||
     preset === "Vertical com blur"
   );
+}
+
+function getEncodingPreset(qualityMode: QualityMode) {
+  return qualityMode === "higher" ? "veryfast" : "ultrafast";
 }
 
 function escapeDrawtextText(text: string) {
@@ -625,6 +620,7 @@ export function buildProcessingPlan(params: {
 
   args.push("-r", "30");
   args.push("-c:v", "libx264");
+  args.push("-preset", getEncodingPreset(qualityMode));
   args.push("-pix_fmt", "yuv420p");
   args.push("-b:v", getVideoBitrate(toolSlug, qualityMode, preset));
   args.push("-c:a", "aac");

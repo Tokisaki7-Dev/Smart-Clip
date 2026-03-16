@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles, Target, Zap } from "lucide-react";
 
+import { getOptionalUser } from "@/lib/supabase/auth";
 import { getToolEngineProfile } from "@/lib/tool-engine";
 import type { ToolDefinition } from "@/types";
 
@@ -17,7 +18,8 @@ interface ToolPageProps {
   tool: ToolDefinition;
 }
 
-export function ToolPage({ tool }: ToolPageProps) {
+export async function ToolPage({ tool }: ToolPageProps) {
+  const user = await getOptionalUser();
   const relatedTools = getRelatedTools(tool.slug);
   const engineProfile = getToolEngineProfile(tool.slug);
 
@@ -90,7 +92,9 @@ export function ToolPage({ tool }: ToolPageProps) {
                 <Link href="#smartclip-uploader">Iniciar agora</Link>
               </Button>
               <Button asChild size="lg" variant="secondary">
-                <Link href="/signup">Salvar no dashboard</Link>
+                <Link href={user ? "/dashboard" : "/login"}>
+                  {user ? "Abrir dashboard" : "Entrar para salvar"}
+                </Link>
               </Button>
             </div>
           </div>
@@ -182,8 +186,8 @@ export function ToolPage({ tool }: ToolPageProps) {
       <section className="container pb-16">
         <CtaStrip
           description="Use a ferramenta agora, valide o formato e suba de plano quando automacao, 1080p ou sem marca d'agua deixarem de ser extra e virarem rotina."
-          primaryHref="/signup"
-          primaryLabel="Testar gratis"
+          primaryHref={user ? "/billing" : "/signup"}
+          primaryLabel={user ? "Ver upgrade" : "Testar gratis"}
           secondaryHref="/pricing"
           secondaryLabel="Ver comparacao de planos"
           title="O foco aqui e deixar o primeiro resultado muito facil de conseguir"

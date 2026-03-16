@@ -1,4 +1,5 @@
 import { createMetadata } from "@/lib/metadata";
+import { getOptionalUser } from "@/lib/supabase/auth";
 import { getBillingSummary } from "@/services/dashboard-data";
 
 import { BillingActions } from "@/components/billing/billing-actions";
@@ -15,7 +16,7 @@ export const metadata = createMetadata({
 });
 
 export default async function BillingPage() {
-  const billingSummary = await getBillingSummary();
+  const [billingSummary, user] = await Promise.all([getBillingSummary(), getOptionalUser()]);
 
   return (
     <PageShell className="space-y-12">
@@ -52,6 +53,7 @@ export default async function BillingPage() {
             </div>
             <BillingActions
               currentPlan={billingSummary.currentPlan}
+              initialEmail={user?.email}
               packs={automationPacks}
             />
           </CardContent>

@@ -23,7 +23,7 @@ export default function ToolsPage() {
       <ToolGrid />
       <CtaStrip
         description="Comece em uma ferramenta, descubra outras rotas relacionadas e leve o melhor formato para cada plataforma sem recomecar do zero."
-        primaryHref="/signup"
+        primaryHref="/video-para-clipe-com-legenda-automatica#smartclip-uploader"
         primaryLabel="Testar ferramentas"
         secondaryHref="/pricing"
         secondaryLabel="Ver planos"

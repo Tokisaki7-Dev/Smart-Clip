@@ -40,6 +40,27 @@ function normalizeChunkText(text: string) {
   return text.replace(/\s+/g, " ").trim();
 }
 
+async function getBlobDuration(blob: Blob) {
+  const objectUrl = URL.createObjectURL(blob);
+
+  try {
+    const duration = await new Promise<number>((resolve, reject) => {
+      const audio = document.createElement("audio");
+
+      audio.preload = "metadata";
+      audio.src = objectUrl;
+      audio.onloadedmetadata = () => resolve(audio.duration || 0);
+      audio.onerror = () => reject(new Error("audio_metadata_failed"));
+    });
+
+    return Number.isFinite(duration) ? duration : 0;
+  } catch {
+    return 0;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 function secondsToTimestamp(seconds: number, separator = ".") {
   const totalMilliseconds = Math.max(0, Math.round(seconds * 1000));
   const hours = Math.floor(totalMilliseconds / 3_600_000);
@@ -105,6 +126,81 @@ function groupCaptionChunks(chunks: WhisperChunk[]) {
   return grouped;
 }
 
+function splitTranscriptIntoPhrases(text: string) {
+  const cleanText = normalizeChunkText(text);
+
+  if (!cleanText) {
+    return [];
+  }
+
+  const sentences = cleanText
+    .split(/(?<=[.!?])\s+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (sentences.length > 1) {
+    return sentences.flatMap((sentence) => {
+      const words = sentence.split(" ").filter(Boolean);
+
+      if (words.length <= 8) {
+        return [sentence];
+      }
+
+      const chunks: string[] = [];
+      for (let index = 0; index < words.length; index += 6) {
+        chunks.push(words.slice(index, index + 6).join(" "));
+      }
+      return chunks;
+    });
+  }
+
+  const words = cleanText.split(" ").filter(Boolean);
+  const phrases: string[] = [];
+
+  for (let index = 0; index < words.length; index += 6) {
+    phrases.push(words.slice(index, index + 6).join(" "));
+  }
+
+  return phrases;
+}
+
+function buildCaptionSegmentsFromText(text: string, totalDuration: number) {
+  const phrases = splitTranscriptIntoPhrases(text);
+
+  if (!phrases.length) {
+    return [] as CaptionSegment[];
+  }
+
+  const safeDuration = totalDuration > 0 ? totalDuration : Math.max(4, phrases.length * 2.4);
+  const totalWords = phrases.reduce(
+    (sum, phrase) => sum + phrase.split(/\s+/).filter(Boolean).length,
+    0
+  );
+  let currentTime = 0;
+
+  return phrases.map((phrase, index) => {
+    const wordCount = phrase.split(/\s+/).filter(Boolean).length;
+    const proportionalDuration =
+      totalWords > 0 ? (safeDuration * wordCount) / totalWords : safeDuration / phrases.length;
+    const durationForPhrase = Math.max(1.1, Math.min(4.2, proportionalDuration));
+    const remainingDuration = Math.max(1.1, safeDuration - currentTime);
+    const finalDuration =
+      index === phrases.length - 1
+        ? remainingDuration
+        : Math.min(durationForPhrase, remainingDuration);
+    const start = currentTime;
+    const end = Math.min(safeDuration, start + finalDuration);
+
+    currentTime = end;
+
+    return {
+      start,
+      end: Math.max(start + 0.9, end),
+      text: wrapCaptionText(phrase)
+    } satisfies CaptionSegment;
+  });
+}
+
 async function getTranscriber() {
   if (transcriberPromise) {
     return transcriberPromise;
@@ -141,23 +237,44 @@ async function getTranscriber() {
 export async function generateAutomaticCaptions(audioBlob: Blob) {
   const transcriber = await getTranscriber();
   const objectUrl = URL.createObjectURL(audioBlob);
+  const audioDuration = await getBlobDuration(audioBlob);
 
   try {
-    const output = (await transcriber(objectUrl, {
-      return_timestamps: "word",
-      chunk_length_s: 20,
-      stride_length_s: 4
-    })) as AutomaticSpeechRecognitionOutputLike;
+    let output: AutomaticSpeechRecognitionOutputLike;
+
+    try {
+      output = (await transcriber(objectUrl, {
+        return_timestamps: "word",
+        chunk_length_s: 20,
+        stride_length_s: 4
+      })) as AutomaticSpeechRecognitionOutputLike;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      const timestampExtractionFailed =
+        message.includes("cross attentions") || message.includes("output_attentions=True");
+
+      if (!timestampExtractionFailed) {
+        throw error;
+      }
+
+      output = (await transcriber(objectUrl, {
+        chunk_length_s: 20,
+        stride_length_s: 4
+      })) as AutomaticSpeechRecognitionOutputLike;
+    }
 
     const chunks = Array.isArray(output.chunks) ? (output.chunks as WhisperChunk[]) : [];
-    const captions = groupCaptionChunks(chunks);
+    const captions =
+      chunks.length > 0
+        ? groupCaptionChunks(chunks)
+        : buildCaptionSegmentsFromText(output.text.trim(), audioDuration);
 
     if (!captions.length && output.text.trim()) {
       return {
         captions: [
           {
             start: 0,
-            end: 4,
+            end: Math.max(4, audioDuration || 4),
             text: wrapCaptionText(output.text.trim())
           }
         ],

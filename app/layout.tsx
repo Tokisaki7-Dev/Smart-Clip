@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -39,8 +37,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isVercelRuntime = Boolean(process.env.VERCEL);
-
   return (
     <html className="dark" lang="pt-BR">
       <body className={`${fontSans.variable} ${fontDisplay.variable} overflow-x-hidden`}>
@@ -51,7 +47,7 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
         <Script id="adsense-auto-ads" strategy="afterInteractive">
-          {`window.adsbygoogle = window.adsbygoogle || []; window.adsbygoogle.push({ google_ad_client: "${adsenseClient}", enable_page_level_ads: true });`}
+          {`window.adsbygoogle = window.adsbygoogle || []; if (!window.__smartclipAutoAdsEnabled) { window.adsbygoogle.push({ google_ad_client: "${adsenseClient}", enable_page_level_ads: true }); window.__smartclipAutoAdsEnabled = true; }`}
         </Script>
         <div
           aria-hidden="true"
@@ -66,8 +62,6 @@ export default function RootLayout({
           <main>{children}</main>
           <SiteFooter />
         </div>
-        {isVercelRuntime ? <Analytics /> : null}
-        {isVercelRuntime ? <SpeedInsights /> : null}
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { FreeValueSection } from "@/components/marketing/free-value-section";
 import { Hero } from "@/components/marketing/hero";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { PremiumHighlights } from "@/components/marketing/premium-highlights";
+import { PopularSearches } from "@/components/marketing/popular-searches";
 import { PricingGrid } from "@/components/marketing/pricing-grid";
 import { ToolGrid } from "@/components/marketing/tool-grid";
 import { UpgradePath } from "@/components/marketing/upgrade-path";
@@ -50,6 +51,7 @@ export default function HomePage() {
       />
 
       <Hero />
+      <PopularSearches />
       <ToolGrid />
       <PageShell className="pt-0">
         <AdsenseSlot

@@ -2,6 +2,39 @@ import type { SeoCluster } from "@/types";
 
 export const seoClusters: SeoCluster[] = [
   {
+    slug: "intencao-comercial",
+    title: "Cluster SEO: ferramentas online para transformar video em clip pronto",
+    description:
+      "Cluster de alta intencao comercial para usuarios que querem um resultado pronto para publicar com o minimo de atrito.",
+    intent: "Capturar buscas proximas de uso e empurrar para ferramentas com maior valor percebido.",
+    keywords: [
+      "transformar video em clip pronto",
+      "video com legenda automatica online",
+      "transformar video em clip para tiktok",
+      "gerar clip 1080p para reels",
+      "ferramenta para clip viral"
+    ],
+    relatedRoutes: [
+      "/video-para-clipe-com-legenda-automatica",
+      "/video-para-clipe-viral",
+      "/gerar-varios-clipes-automaticos",
+      "/video-horizontal-para-vertical",
+      "/pricing"
+    ],
+    faqs: [
+      {
+        question: "O SmartClip entrega um video ja pronto para publicar?",
+        answer:
+          "Sim. As ferramentas principais focam em corte curto, 1080p, formato social e legenda automatica quando a rota suporta esse fluxo."
+      },
+      {
+        question: "Consigo testar antes de assinar?",
+        answer:
+          "Sim. O plano gratis foi mantido forte o bastante para validar resultado e decidir upgrade no momento certo."
+      }
+    ]
+  },
+  {
     slug: "clipes-virais",
     title: "Cluster SEO: clipes virais, trailers curtos e cortes automaticos",
     description:

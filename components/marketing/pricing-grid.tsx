@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check, Sparkles } from "lucide-react";
 
+import { getOptionalUser } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { plans } from "@/services/plans";
@@ -9,7 +10,9 @@ interface PricingGridProps {
   compact?: boolean;
 }
 
-export function PricingGrid({ compact = false }: PricingGridProps) {
+export async function PricingGrid({ compact = false }: PricingGridProps) {
+  const user = await getOptionalUser();
+
   return (
     <div className="grid gap-4 xl:grid-cols-4">
       {plans.map((plan) => (
@@ -61,7 +64,23 @@ export function PricingGrid({ compact = false }: PricingGridProps) {
             </div>
 
             <Button asChild className="w-full" variant={plan.highlighted ? "primary" : "secondary"}>
-              <Link href="/signup">{plan.ctaLabel}</Link>
+              <Link
+                href={
+                  plan.id === "free"
+                    ? user
+                      ? "/dashboard"
+                      : "/signup"
+                    : "/billing"
+                }
+              >
+                {plan.id === "free"
+                  ? user
+                    ? "Abrir dashboard"
+                    : plan.ctaLabel
+                  : user
+                    ? `Assinar ${plan.name}`
+                    : plan.ctaLabel}
+              </Link>
             </Button>
 
             <div className="space-y-4">

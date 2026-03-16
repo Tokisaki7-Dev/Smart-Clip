@@ -1,4 +1,5 @@
 import { createMetadata } from "@/lib/metadata";
+import { getOptionalUser } from "@/lib/supabase/auth";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { SectionHeading } from "@/components/layout/section-heading";
@@ -15,7 +16,9 @@ export const metadata = createMetadata({
   path: "/pricing"
 });
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const user = await getOptionalUser();
+
   return (
     <>
       <PageShell className="space-y-12">
@@ -51,8 +54,8 @@ export default function PricingPage() {
 
         <CtaStrip
           description="O Starter reduz atrito, o Creator vira melhor custo-beneficio quando o uso cresce e os creditos avulsos capturam picos eventuais."
-          primaryHref="/signup"
-          primaryLabel="Criar conta"
+          primaryHref={user ? "/billing" : "/signup"}
+          primaryLabel={user ? "Abrir billing" : "Criar conta"}
           secondaryHref="/billing"
           secondaryLabel="Ver billing"
           title="Comece no gratis e suba quando o valor aparecer"
