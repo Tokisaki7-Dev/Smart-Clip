@@ -110,11 +110,11 @@ const toolEngineProfiles: Record<ToolSlug, ToolEngineProfile> = {
       "Legenda automatica com fallback em SRT e VTT",
       "Saida vertical pronta para TikTok, Reels e Shorts",
       "Sincroniza o original e a exportacao no dashboard",
-      "Pode escalar para o worker premium"
+      "Pode gerar um clip pronto sem sair da pagina"
     ],
     steps: ["Selecionar", "Analisar", "Gerar clipe 1080p"],
     premiumStory:
-      "Quando voce quer mais consistencia, o worker premium pode assumir a deteccao de trechos e gerar o material na fila.",
+      "Quando voce quer mais consistencia, o SmartClip organiza o processo na propria ferramenta e deixa o resultado mais pronto para publicar.",
     presetBlueprints: [
       {
         label: "Clip com legenda 30s",
@@ -151,7 +151,7 @@ const toolEngineProfiles: Record<ToolSlug, ToolEngineProfile> = {
       "Ate tres janelas inteligentes do mesmo video",
       "Ritmo pensado para discovery em lote",
       "Resultados separados para testar ganchos diferentes",
-      "Fila premium para volume maior"
+      "Varias saidas em um unico processo"
     ],
     steps: ["Subir video", "Escolher preset multiplo", "Baixar varios clipes"],
     premiumStory:
@@ -972,7 +972,7 @@ export function analyzeMediaForTool(params: {
 
   if (supportsToolCapability(toolSlug, "premiumWorker")) {
     recommendations.push(
-      "O worker premium fica melhor quando o arquivo precisa de mais de um corte ou processamento mais pesado."
+      "Quando o arquivo rende mais de um corte, vale testar varias saidas do mesmo preset."
     );
   }
 

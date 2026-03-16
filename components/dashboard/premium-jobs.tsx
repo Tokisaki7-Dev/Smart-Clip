@@ -1,4 +1,4 @@
-import { Cpu, Download, Sparkles } from "lucide-react";
+import { Download, Sparkles } from "lucide-react";
 
 import type { DashboardSnapshot } from "@/types";
 
@@ -23,12 +23,12 @@ export function PremiumJobs({ snapshot }: PremiumJobsProps) {
       <CardContent className="space-y-5 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-display text-2xl text-white">Fila premium</h3>
+            <h3 className="font-display text-2xl text-white">Historico de processamento</h3>
             <p className="text-sm text-muted-foreground">
-              Jobs de worker separado para clipes automaticos, cortes mais fortes e saidas mais valiosas.
+              Acompanhe os ultimos processamentos, cortes gerados e downloads disponiveis na sua conta.
             </p>
           </div>
-          <Cpu className="h-5 w-5 text-primary" />
+          <Sparkles className="h-5 w-5 text-primary" />
         </div>
 
         <div className="space-y-4">
@@ -76,7 +76,7 @@ export function PremiumJobs({ snapshot }: PremiumJobsProps) {
               ) : (
                 <div className="flex items-center gap-3 rounded-[1rem] border border-white/8 bg-black/20 p-3 text-sm text-white/68">
                   <Sparkles className="h-4 w-4 text-secondary" />
-                  O worker ainda esta preparando as saidas desse job.
+                  O processamento ainda esta preparando as saidas desse job.
                 </div>
               )}
             </div>

@@ -276,7 +276,7 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
           job.type === "auto_caption"
             ? "Legenda automatica"
             : job.type === "auto_clip"
-              ? "Worker premium"
+              ? "Clipes automaticos"
               : "Processamento",
         outputs: rawOutputs.map((clip, index) => ({
           id: String(clip.exportId || `${job.id}-${index}`),

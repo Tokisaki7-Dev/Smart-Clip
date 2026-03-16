@@ -40,7 +40,7 @@ export const seoClusters: SeoCluster[] = [
       {
         question: "Consigo receber mais de um clipe do mesmo video?",
         answer:
-          "Sim. A fila premium foi preparada para gerar varias saidas curtas do mesmo upload quando a ferramenta suporta esse fluxo."
+          "Sim. Algumas ferramentas foram preparadas para gerar varias saidas curtas do mesmo upload quando o preset suporta esse fluxo."
       },
       {
         question: "Da para testar varios hooks do mesmo video?",

@@ -102,7 +102,7 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "Um fluxo para transformar um video longo em varios clipes curtos com mais velocidade e mais chance de descoberta.",
     description:
-      "Aprenda a gerar varios clipes automaticos do mesmo video usando cortes curtos, formatos sociais e fila premium.",
+      "Aprenda a gerar varios clipes automaticos do mesmo video usando cortes curtos, formatos sociais e fluxo inteligente.",
     category: "Clipes Virais",
     publishedAt: "15 mar 2026",
     readingTime: "7 min",
@@ -121,9 +121,9 @@ export const blogPosts: BlogPost[] = [
         ]
       },
       {
-        heading: "Onde a fila premium entra",
+        heading: "Onde o fluxo inteligente entra",
         paragraphs: [
-          "Na pratica, o trabalho pesado nao e so exportar. E descobrir janelas boas com rapidez. Por isso a fila premium ajuda a encontrar trechos mais fortes e devolver varias saidas para o dashboard.",
+          "Na pratica, o trabalho pesado nao e so exportar. E descobrir janelas boas com rapidez. Por isso o fluxo inteligente ajuda a encontrar trechos mais fortes e devolver varias saidas para o dashboard.",
           "Essa camada e especialmente forte para podcast, live, aula e entrevistas longas."
         ],
         bullets: [
@@ -171,7 +171,7 @@ export const blogPosts: BlogPost[] = [
         ],
         bullets: [
           "Transforme episodios em cortes de 30s, 45s e 59s",
-          "Use o worker para gerar varios clipes automaticamente",
+          "Use os presets para gerar varios clipes automaticamente",
           "Combine legenda automatica quando o formato pedir mais retenção"
         ]
       }

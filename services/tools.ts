@@ -38,16 +38,16 @@ export const toolDefinitions: ToolDefinition[] = [
   {
     slug: "gerar-varios-clipes-automaticos",
     title: "Gerar varios clipes automaticos do mesmo video",
-    kicker: "Fila premium",
+    kicker: "Automacao inteligente",
     category: "Automacao premium",
     attentionLabel: "Ate 3 clipes",
     shortDescription:
       "Suba um video longo e gere ate 3 clipes curtos com selecao automatica de trechos para redes sociais.",
     longDescription:
-      "Essa ferramenta foi desenhada para quem quer transformar um video longo em varios clipes prontos sem escolher cada trecho na mao. O modo premium envia o arquivo para o worker, detecta janelas melhores com heuristicas de fala e entrega varias saidas curtas para testar em TikTok, Shorts, Reels e Stories.",
+      "Essa ferramenta foi desenhada para quem quer transformar um video longo em varios clipes prontos sem escolher cada trecho na mao. O fluxo organiza janelas melhores com heuristicas de fala e entrega varias saidas curtas para testar em TikTok, Shorts, Reels e Stories.",
     seoTitle: "Gerar varios clipes automaticos online do mesmo video",
     seoDescription:
-      "Transforme um video longo em varios clipes curtos automaticamente com worker premium, cortes mais promissores e formatos prontos para redes sociais.",
+      "Transforme um video longo em varios clipes curtos automaticamente com cortes mais promissores e formatos prontos para redes sociais.",
     supportedOutputs: ["3 clipes", "1080x1920", "Reels-safe", "Shorts-safe"],
     useCases: [
       "Podcast em varios cortes",
@@ -73,10 +73,10 @@ export const toolDefinitions: ToolDefinition[] = [
     shortDescription:
       "Pegue um episodio, corte trechos mais fortes, verticalize e gere clips curtos com cara de podcast social.",
     longDescription:
-      "Perfeito para quem grava podcast ou entrevista e quer republicar em volume. O fluxo local ajuda a validar um corte rapido, enquanto o modo premium no worker pode gerar varias saidas curtas para discovery, com framing vertical e audio mais forte.",
+      "Perfeito para quem grava podcast ou entrevista e quer republicar em volume. O fluxo ajuda a validar um corte rapido e gerar varias saidas curtas para discovery, com framing vertical e audio mais forte.",
     seoTitle: "Transformar podcast em clipes curtos para redes sociais",
     seoDescription:
-      "Transforme podcast em clipes curtos para TikTok, Shorts, Reels e Stories com formatos verticais e fluxo premium.",
+      "Transforme podcast em clipes curtos para TikTok, Shorts, Reels e Stories com formatos verticais e fluxo inteligente.",
     supportedOutputs: ["Podcast 30s", "Podcast 45s", "Podcast 59s", "1080x1920"],
     useCases: [
       "Podcast de negocio",
