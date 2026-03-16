@@ -38,6 +38,21 @@ const toolDefaults = {
     targetDuration: 20,
     multiClipCount: 1,
     captionsRequested: false
+  },
+  "gerar-ganchos-de-video": {
+    targetDuration: 15,
+    multiClipCount: 4,
+    captionsRequested: false
+  },
+  "aula-para-clipes": {
+    targetDuration: 45,
+    multiClipCount: 3,
+    captionsRequested: false
+  },
+  "depoimento-para-anuncio": {
+    targetDuration: 20,
+    multiClipCount: 1,
+    captionsRequested: false
   }
 };
 
@@ -297,8 +312,12 @@ function buildClipArgs({ inputFile, outputFile, clip, subtitleFileName, toolSlug
   const enhancement =
     toolSlug === "video-para-anuncio-curto"
       ? "eq=contrast=1.1:saturation=1.16:brightness=0.02,unsharp=5:5:0.82:3:3:0.3"
+      : toolSlug === "depoimento-para-anuncio"
+        ? "eq=contrast=1.08:saturation=1.14:brightness=0.02,unsharp=5:5:0.76:3:3:0.26"
       : toolSlug === "podcast-para-clipes"
         ? "eq=contrast=1.06:saturation=1.12:brightness=0.015,unsharp=5:5:0.74:3:3:0.24"
+        : toolSlug === "aula-para-clipes"
+          ? "eq=contrast=1.05:saturation=1.1:brightness=0.015,unsharp=5:5:0.72:3:3:0.24"
         : "eq=contrast=1.08:saturation=1.18:brightness=0.02,unsharp=5:5:0.76:3:3:0.26";
 
   const videoGraph = subtitleFileName

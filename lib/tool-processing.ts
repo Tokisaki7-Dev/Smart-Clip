@@ -1,3 +1,4 @@
+import { getDefaultPresetLabel, getPresetBlueprints } from "@/lib/tool-engine";
 import type { ToolSlug } from "@/types";
 
 export type OutputFormat = "mp4" | "mov" | "mp3" | "wav";
@@ -27,41 +28,8 @@ export interface ResolvedTrimWindow {
   trimEnd: number;
 }
 
-const defaultVideoPresetOptions = [
-  "Original",
-  "Reels 1080x1920",
-  "Shorts 1080x1920",
-  "TikTok 1080x1920",
-  "Stories 1080x1920",
-  "WhatsApp leve"
-] as const;
-
-const toolPresetMap: Partial<Record<ToolSlug, readonly string[]>> = {
-  "video-para-clipe-com-legenda-automatica": [
-    "Clip com legenda 30s",
-    "Clip com legenda 45s",
-    "Clip com legenda podcast 59s"
-  ],
-  "gerar-varios-clipes-automaticos": ["3 clipes 20s", "3 clipes 30s", "3 clipes 45s"],
-  "podcast-para-clipes": ["Podcast 30s", "Podcast 45s", "Podcast 59s"],
-  "video-para-anuncio-curto": ["Anuncio 15s", "Anuncio 20s", "Anuncio 30s"],
-  "video-para-clipe-viral": [
-    "Clip viral 30s",
-    "Clip viral 45s",
-    "UGC 20s",
-    "Podcast 59s"
-  ],
-  "cortar-video-automaticamente": ["Auto corte 30s", "Auto corte 45s", "Auto corte 60s"],
-  "video-horizontal-para-vertical": [
-    "Vertical com blur",
-    "Vertical com crop central",
-    "Stories 1080x1920"
-  ],
-  "criar-trailer-curto": ["Trailer 15s", "Trailer 30s", "Teaser 45s"]
-};
-
 export function getPresetOptions(slug: ToolSlug) {
-  return [...(toolPresetMap[slug] ?? defaultVideoPresetOptions)];
+  return getPresetBlueprints(slug).map((item) => item.label);
 }
 
 export function isAudioOnlyTool(slug: ToolSlug) {
@@ -69,36 +37,7 @@ export function isAudioOnlyTool(slug: ToolSlug) {
 }
 
 export function getDefaultPresetForTool(slug: ToolSlug) {
-  switch (slug) {
-    case "video-para-clipe-com-legenda-automatica":
-      return "Clip com legenda 45s";
-    case "gerar-varios-clipes-automaticos":
-      return "3 clipes 30s";
-    case "podcast-para-clipes":
-      return "Podcast 45s";
-    case "video-para-anuncio-curto":
-      return "Anuncio 20s";
-    case "video-para-clipe-viral":
-      return "Clip viral 45s";
-    case "cortar-video-automaticamente":
-      return "Auto corte 45s";
-    case "video-horizontal-para-vertical":
-      return "Vertical com blur";
-    case "criar-trailer-curto":
-      return "Trailer 30s";
-    case "video-para-reels":
-      return "Reels 1080x1920";
-    case "video-para-shorts":
-      return "Shorts 1080x1920";
-    case "video-para-tiktok":
-      return "TikTok 1080x1920";
-    case "video-para-stories":
-      return "Stories 1080x1920";
-    case "video-para-whatsapp":
-      return "WhatsApp leve";
-    default:
-      return "Original";
-  }
+  return getDefaultPresetLabel(slug);
 }
 
 export function getFormatOptions(slug: ToolSlug): FormatOption[] {
@@ -128,6 +67,10 @@ export function getDefaultOutputFormat(slug: ToolSlug): OutputFormat {
 }
 
 function getTargetDuration(preset: string) {
+  if (preset.includes("12s")) {
+    return 12;
+  }
+
   if (preset.includes("15s")) {
     return 15;
   }
@@ -241,6 +184,30 @@ function resolveTrimWindow(params: {
           ? Math.min(Math.max(duration * 0.08, 0), duration - safeTarget - 1)
           : 0;
       break;
+    case "gerar-ganchos-de-video":
+      start =
+        duration > safeTarget + 10
+          ? Math.min(Math.max(duration * 0.04, 0), duration - safeTarget - 1)
+          : 0;
+      break;
+    case "aula-para-clipes":
+      start =
+        duration > safeTarget + 12
+          ? Math.min(Math.max(duration * 0.12, 1.1), duration - safeTarget - 1)
+          : 0;
+      break;
+    case "depoimento-para-anuncio":
+      start =
+        duration > safeTarget + 8
+          ? Math.min(Math.max(duration * 0.06, 0.6), duration - safeTarget - 1)
+          : 0;
+      break;
+    case "video-para-status-de-whatsapp":
+      start =
+        duration > safeTarget + 8
+          ? Math.min(Math.max(duration * 0.08, 0.8), duration - safeTarget - 1)
+          : 0;
+      break;
     default:
       return {
         trimStart,
@@ -292,12 +259,24 @@ function getVisualEnhancement(preset: string, toolSlug: ToolSlug) {
     return "eq=contrast=1.1:saturation=1.16:brightness=0.02,unsharp=5:5:0.82:3:3:0.3";
   }
 
+  if (toolSlug === "depoimento-para-anuncio") {
+    return "eq=contrast=1.08:saturation=1.14:brightness=0.02,unsharp=5:5:0.76:3:3:0.26";
+  }
+
   if (toolSlug === "podcast-para-clipes") {
     return "eq=contrast=1.06:saturation=1.12:brightness=0.015,unsharp=5:5:0.74:3:3:0.24";
   }
 
+  if (toolSlug === "aula-para-clipes") {
+    return "eq=contrast=1.05:saturation=1.1:brightness=0.015,unsharp=5:5:0.72:3:3:0.24";
+  }
+
   if (toolSlug === "gerar-varios-clipes-automaticos") {
     return "eq=contrast=1.07:saturation=1.16:brightness=0.02,unsharp=5:5:0.72:3:3:0.26";
+  }
+
+  if (toolSlug === "gerar-ganchos-de-video") {
+    return "eq=contrast=1.1:saturation=1.18:brightness=0.02,unsharp=5:5:0.8:3:3:0.28";
   }
 
   if (toolSlug === "video-para-clipe-com-legenda-automatica") {
@@ -310,6 +289,10 @@ function getVisualEnhancement(preset: string, toolSlug: ToolSlug) {
 
   if (toolSlug === "criar-trailer-curto") {
     return "eq=contrast=1.09:saturation=1.1:brightness=0.015,unsharp=5:5:0.75:3:3:0.3";
+  }
+
+  if (toolSlug === "video-para-status-de-whatsapp") {
+    return "eq=contrast=1.02:saturation=1.03";
   }
 
   if (toolSlug === "video-horizontal-para-vertical" || preset.includes("1080x1920")) {
@@ -328,6 +311,10 @@ function getPlaybackSpeed(preset: string, toolSlug: ToolSlug) {
     return preset === "Anuncio 15s" ? 1.08 : preset === "Anuncio 20s" ? 1.05 : 1.03;
   }
 
+  if (toolSlug === "depoimento-para-anuncio") {
+    return preset === "Depoimento 15s" ? 1.05 : preset === "Depoimento 20s" ? 1.03 : 1.01;
+  }
+
   if (toolSlug === "video-para-clipe-com-legenda-automatica") {
     if (preset === "Clip com legenda 30s") {
       return 1.03;
@@ -338,6 +325,10 @@ function getPlaybackSpeed(preset: string, toolSlug: ToolSlug) {
 
   if (toolSlug === "criar-trailer-curto") {
     return preset === "Trailer 15s" ? 1.07 : 1.04;
+  }
+
+  if (toolSlug === "gerar-ganchos-de-video") {
+    return preset === "4 ganchos 12s" ? 1.08 : preset === "4 ganchos 15s" ? 1.05 : 1.03;
   }
 
   return 1;
@@ -364,6 +355,17 @@ function getSimpleVideoFilter(params: {
     preset === "Anuncio 15s" ||
     preset === "Anuncio 20s" ||
     preset === "Anuncio 30s" ||
+    preset === "4 ganchos 12s" ||
+    preset === "4 ganchos 15s" ||
+    preset === "4 ganchos 20s" ||
+    preset === "Aula 30s" ||
+    preset === "Aula 45s" ||
+    preset === "Aula 60s" ||
+    preset === "Depoimento 15s" ||
+    preset === "Depoimento 20s" ||
+    preset === "Depoimento 30s" ||
+    preset === "Status 15s" ||
+    preset === "Status 30s" ||
     preset === "Reels 1080x1920" ||
     preset === "Shorts 1080x1920" ||
     preset === "TikTok 1080x1920" ||
@@ -373,6 +375,10 @@ function getSimpleVideoFilter(params: {
     toolSlug === "gerar-varios-clipes-automaticos" ||
     toolSlug === "podcast-para-clipes" ||
     toolSlug === "video-para-anuncio-curto" ||
+    toolSlug === "gerar-ganchos-de-video" ||
+    toolSlug === "aula-para-clipes" ||
+    toolSlug === "depoimento-para-anuncio" ||
+    toolSlug === "video-para-status-de-whatsapp" ||
     toolSlug === "video-para-reels" ||
     toolSlug === "video-para-shorts" ||
     toolSlug === "video-para-tiktok" ||
@@ -404,7 +410,16 @@ function getVideoBitrate(toolSlug: ToolSlug, qualityMode: QualityMode, preset: s
     return qualityMode === "higher" ? "3400k" : qualityMode === "smaller" ? "2000k" : "2800k";
   }
 
-  if (toolSlug === "podcast-para-clipes" || toolSlug === "gerar-varios-clipes-automaticos") {
+  if (toolSlug === "depoimento-para-anuncio") {
+    return qualityMode === "higher" ? "3200k" : qualityMode === "smaller" ? "1900k" : "2500k";
+  }
+
+  if (
+    toolSlug === "podcast-para-clipes" ||
+    toolSlug === "gerar-varios-clipes-automaticos" ||
+    toolSlug === "aula-para-clipes" ||
+    toolSlug === "gerar-ganchos-de-video"
+  ) {
     return qualityMode === "higher" ? "3300k" : qualityMode === "smaller" ? "1800k" : "2600k";
   }
 
@@ -415,6 +430,7 @@ function getVideoBitrate(toolSlug: ToolSlug, qualityMode: QualityMode, preset: s
   if (
     toolSlug === "comprimir-video" ||
     toolSlug === "video-para-whatsapp" ||
+    toolSlug === "video-para-status-de-whatsapp" ||
     preset === "WhatsApp leve"
   ) {
     return "900k";
@@ -458,6 +474,10 @@ function shouldUseVerticalComplex(toolSlug: ToolSlug, preset: string) {
     toolSlug === "video-para-anuncio-curto" ||
     toolSlug === "video-para-clipe-viral" ||
     toolSlug === "video-horizontal-para-vertical" ||
+    toolSlug === "gerar-ganchos-de-video" ||
+    toolSlug === "aula-para-clipes" ||
+    toolSlug === "depoimento-para-anuncio" ||
+    toolSlug === "video-para-status-de-whatsapp" ||
     preset === "Vertical com blur"
   );
 }
@@ -511,6 +531,7 @@ export function buildProcessingPlan(params: {
   trimStart: number;
   trimEnd: number;
   duration?: number;
+  outputSuffix?: string;
   burnedCaptions?: {
     captions: CaptionSegment[];
     fontFileName: string;
@@ -525,6 +546,7 @@ export function buildProcessingPlan(params: {
     trimStart,
     trimEnd,
     duration = 0,
+    outputSuffix,
     burnedCaptions
   } = params;
   const resolvedTrim = resolveTrimWindow({
@@ -538,7 +560,8 @@ export function buildProcessingPlan(params: {
   const inputExtension = inputFileName.split(".").pop()?.toLowerCase() || "mp4";
   const inputFsName = `input.${inputExtension}`;
   const baseName = inputFileName.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9._-]/g, "-");
-  const outputFileName = `${baseName}-${toolSlug}.${outputFormat}`;
+  const suffixSegment = outputSuffix ? `-${outputSuffix}` : "";
+  const outputFileName = `${baseName}-${toolSlug}${suffixSegment}.${outputFormat}`;
 
   if (isAudioOnlyTool(toolSlug)) {
     const args =

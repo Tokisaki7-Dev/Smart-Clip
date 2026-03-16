@@ -235,6 +235,122 @@ export const toolDefinitions: ToolDefinition[] = [
     featured: true
   },
   {
+    slug: "gerar-ganchos-de-video",
+    title: "Gerar ganchos de video para testar abertura",
+    kicker: "Teste de hooks",
+    category: "Automacao premium",
+    attentionLabel: "4 ganchos por upload",
+    shortDescription:
+      "Transforme um video em varias aberturas curtas para testar qual hook chama mais clique, retencao e resposta.",
+    longDescription:
+      "Essa ferramenta foi feita para creators, social media e marketers que pensam em volume e teste. Ela recorta o mesmo material em varios ganchos curtos, deixa o formato mais pronto para discovery e reduz muito o tempo entre gravar algo e validar varias aberturas no TikTok, Shorts, Reels ou em anuncios.",
+    seoTitle: "Gerar ganchos de video online para TikTok, Reels e Shorts",
+    seoDescription:
+      "Gere varios ganchos curtos do mesmo video para testar abertura, retencao e descoberta em TikTok, Shorts, Reels e anuncios.",
+    supportedOutputs: ["4 hooks", "1080x1920", "TikTok-safe", "Reels-safe"],
+    useCases: [
+      "Teste de criativo",
+      "Variações de hook",
+      "Campanhas de descoberta",
+      "Conteudo organico em lote"
+    ],
+    retentionPrompt:
+      "Guarde a abertura que mais performa e volte ao SmartClip para rodar novas variacoes do mesmo formato.",
+    audience:
+      "Gestores de trafego, UGC creators, social media e qualquer time que testa varios criativos por semana.",
+    promise:
+      "Uma das rotas mais fortes para aumentar frequencia de uso porque cada video vira varias chances de acertar.",
+    platforms: ["TikTok", "Reels", "Shorts", "Ads"],
+    featured: true
+  },
+  {
+    slug: "aula-para-clipes",
+    title: "Transformar aula em clipes curtos",
+    kicker: "Educacional",
+    category: "Automacao premium",
+    attentionLabel: "Aula para discovery",
+    shortDescription:
+      "Pegue uma aula longa, workshop ou live e gere clipes curtos com mais valor para redes sociais.",
+    longDescription:
+      "Criadores de conteudo educacional e infoprodutores costumam ter material longo e valioso, mas dificil de reaproveitar rapido. Essa ferramenta transforma aula em clipes curtos com framing vertical e ritmo melhor para descoberta, sem obrigar o usuario a editar cada trecho na mao.",
+    seoTitle: "Transformar aula em clipes curtos para redes sociais",
+    seoDescription:
+      "Converta aulas, workshops e lives em clipes curtos para TikTok, Shorts, Reels e Stories com formato vertical pronto.",
+    supportedOutputs: ["3 clipes", "Aula 30s", "Aula 45s", "Aula 60s"],
+    useCases: [
+      "Cortes de aula",
+      "Trechos de workshop",
+      "Lives educativas",
+      "Repurpose de curso"
+    ],
+    retentionPrompt:
+      "Quando o conteudo educativo entra em rotina, essa ferramenta vira parte natural do calendario de publicacao.",
+    audience:
+      "Educadores, infoprodutores, criadores e marcas que precisam distribuir conhecimento em formatos curtos.",
+    promise:
+      "Converte um ativo longo em varios cortes de valor, o que aumenta o retorno e reduz a friccao para continuar usando o produto.",
+    platforms: ["Shorts", "Reels", "TikTok", "YouTube"],
+    featured: true
+  },
+  {
+    slug: "depoimento-para-anuncio",
+    title: "Transformar depoimento em anuncio curto",
+    kicker: "Prova social",
+    category: "Clipes virais",
+    attentionLabel: "Venda e UGC",
+    shortDescription:
+      "Converta depoimentos e reviews em criativos curtos de venda prontos para social e anuncios.",
+    longDescription:
+      "Depoimentos bons normalmente ficam longos demais para performar bem sem edicao. Essa ferramenta encurta o material, melhora o ritmo, adapta o formato para telas verticais e deixa a prova social mais pronta para usar em campanhas, landing pages e discovery.",
+    seoTitle: "Transformar depoimento em anuncio curto online",
+    seoDescription:
+      "Crie anuncios curtos com depoimentos, reviews e prova social para Reels, TikTok, Shorts e criativos pagos.",
+    supportedOutputs: ["15s", "20s", "30s", "1080x1920"],
+    useCases: [
+      "Depoimento de cliente",
+      "Review de produto",
+      "UGC de prova social",
+      "Criativo para venda"
+    ],
+    retentionPrompt:
+      "Salve seus depoimentos melhores e repita o mesmo estilo de criativo sempre que chegar uma nova prova social.",
+    audience:
+      "Ecommerce, infoprodutores, afiliados, gestores de trafego e times comerciais que dependem de prova social.",
+    promise:
+      "Ferramenta com apelo muito comercial e facil de vender porque resolve um formato que impacta diretamente o lucro.",
+    platforms: ["Reels", "TikTok", "Ads", "Shorts"],
+    featured: true
+  },
+  {
+    slug: "video-para-status-de-whatsapp",
+    title: "Video para Status do WhatsApp",
+    kicker: "Uso de massa",
+    category: "Formatos sociais",
+    attentionLabel: "Leve e rapido",
+    shortDescription:
+      "Transforme qualquer video em um arquivo mais curto e leve para publicar no Status do WhatsApp.",
+    longDescription:
+      "Status do WhatsApp continua sendo uma rota enorme de distribuicao para vendas, atendimento e relacionamento. Essa pagina foi criada para atrair busca ampla e resolver rapido a dor de deixar um video curto, leve e com formato melhor para celular.",
+    seoTitle: "Transformar video para Status do WhatsApp",
+    seoDescription:
+      "Prepare videos para Status do WhatsApp com duracao curta, arquivo leve e exportacao pronta para celular.",
+    supportedOutputs: ["Status 15s", "Status 30s", "Status leve", "MP4"],
+    useCases: [
+      "Status de vendas",
+      "Atendimento",
+      "Divulgacao local",
+      "Relacionamento com clientes"
+    ],
+    retentionPrompt:
+      "Se voce usa WhatsApp para vender ou responder clientes, essa vira uma das ferramentas mais recorrentes do seu fluxo.",
+    audience:
+      "Negocios locais, consultores, equipes comerciais, suporte e qualquer usuario que distribui video por WhatsApp.",
+    promise:
+      "Atrai um publico enorme por praticidade e ainda abre caminho para cross-sell com Reels, TikTok e clipes curtos.",
+    platforms: ["WhatsApp", "Status", "Mobile"],
+    featured: true
+  },
+  {
     slug: "cortar-video",
     title: "Cortar video online",
     kicker: "Edicao rapida",

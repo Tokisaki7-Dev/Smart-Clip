@@ -53,6 +53,7 @@ export function BillingActions({ currentPlan, packs }: BillingActionsProps) {
           ok?: boolean;
           error?: string;
           session?: {
+            redirectUrl?: string | null;
             message?: string;
           };
         };
@@ -61,9 +62,15 @@ export function BillingActions({ currentPlan, packs }: BillingActionsProps) {
           throw new Error(data.error || "Nao foi possivel iniciar o checkout.");
         }
 
+        if (data.session?.redirectUrl) {
+          setStatusMessage("Checkout criado. Redirecionando para o PagBank...");
+          window.location.href = data.session.redirectUrl;
+          return;
+        }
+
         setStatusMessage(
           data.session?.message ||
-            "Checkout criado. Conecte as credenciais do PagBank para concluir o pagamento real."
+            "Checkout criado, mas sem link do PagBank. Revise a configuracao do provedor."
         );
       } catch (error) {
         setStatusMessage(

@@ -11,7 +11,10 @@ export const seoClusters: SeoCluster[] = [
       "clipe com legenda automatica",
       "transformar video em clipe viral",
       "gerar varios clipes automaticos",
+      "gerar ganchos de video",
       "podcast para clipes",
+      "aula para clipes",
+      "depoimento para anuncio",
       "cortar video automaticamente",
       "criar trailer curto",
       "video curto para tiktok"
@@ -19,7 +22,10 @@ export const seoClusters: SeoCluster[] = [
     relatedRoutes: [
       "/video-para-clipe-com-legenda-automatica",
       "/gerar-varios-clipes-automaticos",
+      "/gerar-ganchos-de-video",
       "/podcast-para-clipes",
+      "/aula-para-clipes",
+      "/depoimento-para-anuncio",
       "/video-para-clipe-viral",
       "/cortar-video-automaticamente",
       "/criar-trailer-curto",
@@ -35,6 +41,11 @@ export const seoClusters: SeoCluster[] = [
         question: "Consigo receber mais de um clipe do mesmo video?",
         answer:
           "Sim. A fila premium foi preparada para gerar varias saidas curtas do mesmo upload quando a ferramenta suporta esse fluxo."
+      },
+      {
+        question: "Da para testar varios hooks do mesmo video?",
+        answer:
+          "Sim. O SmartClip agora tem rotas especificas para gerar ganchos curtos, varios clipes automáticos e recortes de aulas ou podcasts."
       },
       {
         question: "Posso transformar um video horizontal em algo pronto para TikTok?",
@@ -88,7 +99,12 @@ export const seoClusters: SeoCluster[] = [
       "Cluster para usuarios que precisam reduzir peso sem travar a rotina de publicacao ou compartilhamento.",
     intent: "Atrair quem precisa resolver upload, WhatsApp, email e plataformas com limite de tamanho.",
     keywords: ["comprimir video", "reduzir tamanho de video", "video leve para whatsapp"],
-    relatedRoutes: ["/comprimir-video", "/video-para-whatsapp", "/converter-video"],
+    relatedRoutes: [
+      "/comprimir-video",
+      "/video-para-whatsapp",
+      "/video-para-status-de-whatsapp",
+      "/converter-video"
+    ],
     faqs: [
       {
         question: "Da para comprimir sem destruir a qualidade?",
@@ -113,6 +129,7 @@ export const seoClusters: SeoCluster[] = [
       "/video-para-shorts",
       "/video-para-tiktok",
       "/video-para-stories",
+      "/video-para-status-de-whatsapp",
       "/video-horizontal-para-vertical"
     ],
     faqs: [

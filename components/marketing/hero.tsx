@@ -6,14 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getFeaturedTools } from "@/services/tools";
 
 const heroStats = [
-  { label: "Rotas de alta intencao", value: "18+" },
+  { label: "Rotas de alta intencao", value: "22+" },
   { label: "Fluxos com uso imediato", value: "100%" },
-  { label: "Presets sociais prontos", value: "14+" }
+  { label: "Presets sociais prontos", value: "20+" }
 ];
 
 const heroPromises = [
   "Gerar clip 1080p com legenda automatica para redes sociais",
   "Transformar um video longo em varios clipes automaticos",
+  "Gerar hooks curtos para testar abertura e criativo",
   "Transformar qualquer video em clipe viral curto",
   "Verticalizar videos horizontais com fundo blur"
 ];

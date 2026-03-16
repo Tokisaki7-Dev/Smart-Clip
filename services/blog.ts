@@ -11,6 +11,92 @@ export const blogCategories = [
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "como-gerar-ganchos-de-video-para-testar-aberturas",
+    title: "Como gerar ganchos de video para testar aberturas que prendem mais",
+    excerpt:
+      "Uma forma pratica de transformar o mesmo video em varias aberturas curtas para descobrir qual hook merece mais distribuicao.",
+    description:
+      "Aprenda a gerar varios ganchos curtos do mesmo video para TikTok, Shorts, Reels e anuncios com menos retrabalho.",
+    category: "Clipes Virais",
+    publishedAt: "15 mar 2026",
+    readingTime: "6 min",
+    keywords: [
+      "gerar ganchos de video",
+      "testar hooks de video",
+      "varias aberturas do mesmo video",
+      "hook para tiktok e reels"
+    ],
+    sections: [
+      {
+        heading: "Por que hook testing vira vantagem competitiva",
+        paragraphs: [
+          "A maioria das pessoas ainda testa um criativo por vez. Quando voce consegue extrair varias aberturas curtas do mesmo material, aumenta muito a chance de acertar a primeira impressao.",
+          "Essa logica funciona tanto para organico quanto para midia paga porque o ganho real esta em reduzir o tempo entre gravar, gerar variacoes e medir resposta."
+        ]
+      },
+      {
+        heading: "Como o SmartClip transforma isso em um fluxo util",
+        paragraphs: [
+          "Em vez de tratar o hook como um ajuste manual, o SmartClip organiza varias janelas curtas do video e deixa os arquivos prontos para comparar lado a lado.",
+          "Isso e especialmente forte para creators, UGC e equipes de performance que precisam de volume sem travar a rotina."
+        ],
+        bullets: [
+          "Crie 4 hooks curtos do mesmo upload",
+          "Baixe cada abertura separadamente",
+          "Salve o preset vencedor para repetir depois"
+        ]
+      }
+    ],
+    relatedTools: [
+      "gerar-ganchos-de-video",
+      "gerar-varios-clipes-automaticos",
+      "video-para-anuncio-curto"
+    ]
+  },
+  {
+    slug: "como-transformar-depoimento-em-anuncio-curto-com-prova-social",
+    title: "Como transformar depoimento em anuncio curto com mais prova social e menos gordura",
+    excerpt:
+      "Depoimentos bons costumam ser longos demais. O ganho esta em recortar o valor rapido e deixar o criativo mais pronto para vender.",
+    description:
+      "Veja como transformar depoimento, review e UGC em anuncios curtos para Reels, TikTok, Shorts e campanhas.",
+    category: "Conversao",
+    publishedAt: "15 mar 2026",
+    readingTime: "5 min",
+    keywords: [
+      "depoimento para anuncio",
+      "review em anuncio curto",
+      "ugc de prova social",
+      "video de cliente para reels"
+    ],
+    sections: [
+      {
+        heading: "O problema dos depoimentos crus",
+        paragraphs: [
+          "Quase todo depoimento interessante demora para chegar no melhor trecho. Isso mata retenção e piora a percepcao de valor quando o objetivo e vender rapido.",
+          "Por isso transformar prova social em criativo curto e um uso muito forte para uma ferramenta de video orientada a lucro."
+        ]
+      },
+      {
+        heading: "O que faz a versao curta funcionar melhor",
+        paragraphs: [
+          "A melhor versao costuma combinar um hook de confianca, um beneficio concreto e uma saida pronta para mobile. Quanto menos atrito para gerar esse formato, maior a chance de uso recorrente.",
+          "E exatamente por isso que depoimento para anuncio tende a converter bem em produto pago."
+        ],
+        bullets: [
+          "Use 15s para hook e prova social imediata",
+          "Use 20s para criativo de ecommerce",
+          "Use 30s quando o contexto ainda importa"
+        ]
+      }
+    ],
+    relatedTools: [
+      "depoimento-para-anuncio",
+      "video-para-anuncio-curto",
+      "video-para-clipe-com-legenda-automatica"
+    ]
+  },
+  {
     slug: "como-gerar-varios-clipes-automaticos-do-mesmo-video",
     title: "Como gerar varios clipes automaticos do mesmo video sem cortar tudo na mao",
     excerpt:

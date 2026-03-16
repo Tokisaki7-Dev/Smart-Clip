@@ -30,9 +30,19 @@ function resolveAmountInCents(planId: string, creditPackId?: string | null) {
 export async function POST(request: Request) {
   const body = await request.json();
   const payload = parseCheckoutPayload(body);
-  const checkoutPayload = {
-    ...payload
-  };
+  const amountCents = resolveAmountInCents(payload.planId, payload.creditPackId);
+  const pack = payload.creditPackId ? getPackById(payload.creditPackId) : null;
+  const productName = pack?.name || payload.planId;
+
+  if (amountCents <= 0) {
+    return NextResponse.json(
+      { ok: false, error: "invalid_checkout_amount" },
+      { status: 400 }
+    );
+  }
+  let customerEmail = payload.customerEmail;
+  let paymentAttemptId = crypto.randomUUID();
+  let userId: string | null = null;
 
   if (isSupabaseConfigured()) {
     const supabase = await createSupabaseServerClient();
@@ -40,36 +50,60 @@ export async function POST(request: Request) {
       data: { user }
     } = await supabase.auth.getUser();
 
-    const customerEmail = payload.customerEmail || user?.email || undefined;
-    const amountCents = resolveAmountInCents(payload.planId, payload.creditPackId);
-    const pack = payload.creditPackId ? getPackById(payload.creditPackId) : null;
-    const session = createPagBankCheckoutSession({
-      ...checkoutPayload,
-      customerEmail
-    });
+    customerEmail = customerEmail || user?.email || undefined;
+    userId = user?.id || null;
 
-    if (user) {
-      await supabase.from("payment_attempts").insert({
-        user_id: user.id,
-        credit_pack_id: payload.creditPackId || null,
-        payment_method: payload.paymentMethod,
-        amount_cents: amountCents,
-        status: "pending",
+    if (userId) {
+      const attemptInsert = await supabase
+        .from("payment_attempts")
+        .insert({
+          user_id: userId,
+          credit_pack_id: payload.creditPackId || null,
+          payment_method: payload.paymentMethod,
+          amount_cents: amountCents,
+          status: "pending",
+          raw_payload: {
+            ...payload,
+            customerEmail,
+            productName
+          }
+        })
+        .select("id")
+        .single();
+
+      if (attemptInsert.data?.id) {
+        paymentAttemptId = attemptInsert.data.id;
+      }
+    }
+  }
+
+  const referenceId = ["smartclip", userId || "guest", payload.planId, paymentAttemptId].join(":");
+  const session = await createPagBankCheckoutSession({
+    ...payload,
+    customerEmail,
+    amountCents,
+    productName,
+    referenceId
+  });
+
+  if (isSupabaseConfigured() && userId) {
+    const supabase = await createSupabaseServerClient();
+
+    await supabase
+      .from("payment_attempts")
+      .update({
+        provider_payment_id: session.checkoutId || null,
         raw_payload: {
           ...payload,
           customerEmail,
-          productName: pack?.name || payload.planId
+          productName,
+          referenceId,
+          providerResponse: session.raw || session
         }
-      });
-    }
-
-    return NextResponse.json({
-      ok: true,
-      session
-    });
+      })
+      .eq("id", paymentAttemptId)
+      .eq("user_id", userId);
   }
-
-  const session = createPagBankCheckoutSession(payload);
 
   return NextResponse.json({
     ok: true,

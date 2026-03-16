@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { isSupabaseConfigured } from "@/lib/env";
+import { cancelPagBankSubscription } from "@/lib/pagbank";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const subscriptionActionSchema = z.object({
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
 
   const { data: subscription } = await supabase
     .from("subscriptions")
-    .select("id, status")
+    .select("id, status, external_id")
     .eq("user_id", user.id)
     .in("status", ["trial", "active", "past_due"])
     .order("created_at", { ascending: false })
@@ -42,6 +43,23 @@ export async function POST(request: Request) {
       { ok: false, error: "subscription_not_found" },
       { status: 404 }
     );
+  }
+
+  if (subscription.external_id) {
+    try {
+      await cancelPagBankSubscription(subscription.external_id);
+    } catch (error) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "pagbank_subscription_cancel_failed"
+        },
+        { status: 400 }
+      );
+    }
   }
 
   const { data, error } = await supabase

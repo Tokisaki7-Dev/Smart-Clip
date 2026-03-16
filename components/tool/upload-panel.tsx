@@ -1,7 +1,15 @@
 "use client";
 
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Cpu, Download, LoaderCircle, Scissors, Upload, WandSparkles } from "lucide-react";
+import {
+  CheckCircle2,
+  Cpu,
+  Download,
+  LoaderCircle,
+  Scissors,
+  Upload,
+  WandSparkles
+} from "lucide-react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 
@@ -12,6 +20,13 @@ import {
   generateAutomaticCaptions
 } from "@/lib/auto-captions";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  analyzeMediaForTool,
+  buildSmartWindows,
+  getPresetBlueprints,
+  getToolEngineProfile,
+  supportsToolCapability
+} from "@/lib/tool-engine";
 import {
   buildProcessingPlan,
   getDefaultOutputFormat,
@@ -77,6 +92,16 @@ interface ErrorPayload {
   ok?: boolean;
 }
 
+interface GeneratedOutput {
+  fileName: string;
+  downloadUrl: string;
+  mimeType: string;
+  label: string;
+  resolution: string;
+  trimStart: number;
+  trimEnd: number;
+}
+
 function getApiError(data: unknown, fallbackMessage: string) {
   if (
     data &&
@@ -100,38 +125,8 @@ function getResolutionLabel(toolSlug: ToolSlug, preset: string, outputFormat: Ou
     return "audio";
   }
 
-  if (
-    preset === "Clip com legenda 30s" ||
-    preset === "Clip com legenda 45s" ||
-    preset === "Clip com legenda podcast 59s" ||
-    preset === "3 clipes 20s" ||
-    preset === "3 clipes 30s" ||
-    preset === "3 clipes 45s" ||
-    preset === "Podcast 30s" ||
-    preset === "Podcast 45s" ||
-    preset === "Podcast 59s" ||
-    preset === "Anuncio 15s" ||
-    preset === "Anuncio 20s" ||
-    preset === "Anuncio 30s" ||
-    preset === "Reels 1080x1920" ||
-    preset === "Shorts 1080x1920" ||
-    preset === "Vertical com blur" ||
-    preset === "Vertical com crop central" ||
-    preset === "Clip viral 30s" ||
-    preset === "Clip viral 45s" ||
-    preset === "UGC 20s" ||
-    preset === "Podcast 59s" ||
-    toolSlug === "video-para-clipe-com-legenda-automatica" ||
-    toolSlug === "gerar-varios-clipes-automaticos" ||
-    toolSlug === "podcast-para-clipes" ||
-    toolSlug === "video-para-anuncio-curto" ||
-    toolSlug === "video-para-clipe-viral" ||
-    toolSlug === "video-horizontal-para-vertical"
-  ) {
-    return "1080x1920";
-  }
-
-  if (preset === "TikTok 1080x1920" || preset === "Stories 1080x1920") {
+  const blueprint = getPresetBlueprints(toolSlug).find((item) => item.label === preset);
+  if (blueprint?.targetAspect === "9:16") {
     return "1080x1920";
   }
 
@@ -143,38 +138,21 @@ function getResolutionLabel(toolSlug: ToolSlug, preset: string, outputFormat: Ou
 }
 
 function getPremiumQueueSettings(toolSlug: ToolSlug, preset: string) {
-  switch (toolSlug) {
-    case "gerar-varios-clipes-automaticos":
-      return {
-        captionsRequested: false,
-        multiClipCount: 3,
-        label: preset.includes("45s") ? "Gerar 3 clipes 45s no worker" : "Gerar 3 clipes no worker"
-      };
-    case "podcast-para-clipes":
-      return {
-        captionsRequested: false,
-        multiClipCount: 3,
-        label: "Gerar varios cortes de podcast"
-      };
-    case "video-para-clipe-com-legenda-automatica":
-      return {
-        captionsRequested: true,
-        multiClipCount: 1,
-        label: "Enviar para worker com legenda"
-      };
-    case "video-para-anuncio-curto":
-      return {
-        captionsRequested: false,
-        multiClipCount: 1,
-        label: "Gerar criativo curto no worker"
-      };
-    default:
-      return {
-        captionsRequested: false,
-        multiClipCount: 1,
-        label: "Enviar para fila premium"
-      };
-  }
+  const blueprint = getPresetBlueprints(toolSlug).find((item) => item.label === preset);
+  const multiClipCount = blueprint?.multiClipCount || 1;
+  const captionsRequested = supportsToolCapability(toolSlug, "autoCaption");
+  const label =
+    toolSlug === "video-para-clipe-com-legenda-automatica"
+      ? "Enviar para worker com legenda"
+      : multiClipCount > 1
+        ? `Gerar ${multiClipCount} saidas no worker`
+        : "Enviar para fila premium";
+
+  return {
+    captionsRequested,
+    multiClipCount,
+    label
+  };
 }
 
 async function postJson<T>(url: string, payload: unknown): Promise<ApiResult<T | ErrorPayload>> {
@@ -287,24 +265,12 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     vtt: null
   });
   const isAudioTool = isAudioOnlyTool(tool.slug);
-  const supportsAutoCaptions = tool.slug === "video-para-clipe-com-legenda-automatica";
-  const supportsServerPremium =
-    tool.slug === "video-para-clipe-com-legenda-automatica" ||
-    tool.slug === "video-para-clipe-viral" ||
-    tool.slug === "gerar-varios-clipes-automaticos" ||
-    tool.slug === "podcast-para-clipes" ||
-    tool.slug === "video-para-anuncio-curto";
+  const engineProfile = useMemo(() => getToolEngineProfile(tool.slug), [tool.slug]);
+  const supportsAutoCaptions = engineProfile.autoCaption;
+  const supportsServerPremium = engineProfile.workerEnabled;
   const formatOptions = useMemo(() => getFormatOptions(tool.slug), [tool.slug]);
   const presetOptions = useMemo(() => getPresetOptions(tool.slug), [tool.slug]);
-  const isSmartTool =
-    tool.slug === "video-para-clipe-com-legenda-automatica" ||
-    tool.slug === "gerar-varios-clipes-automaticos" ||
-    tool.slug === "podcast-para-clipes" ||
-    tool.slug === "video-para-anuncio-curto" ||
-    tool.slug === "video-para-clipe-viral" ||
-    tool.slug === "cortar-video-automaticamente" ||
-    tool.slug === "video-horizontal-para-vertical" ||
-    tool.slug === "criar-trailer-curto";
+  const isSmartTool = engineProfile.capabilities.length > 1;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("Nenhum arquivo selecionado");
@@ -335,6 +301,8 @@ export function UploadPanel({ tool }: UploadPanelProps) {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [downloadFileName, setDownloadFileName] = useState("");
   const [downloadType, setDownloadType] = useState<"video" | "audio">("video");
+  const [generatedOutputs, setGeneratedOutputs] = useState<GeneratedOutput[]>([]);
+  const [activeOutputIndex, setActiveOutputIndex] = useState(0);
   const [captionStatusMessage, setCaptionStatusMessage] = useState(
     supportsAutoCaptions
       ? "A legenda automatica usa IA no navegador e pode levar mais tempo na primeira vez."
@@ -358,6 +326,21 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     return preset === "Original" ? ("padrao" as const) : ("rapida" as const);
   }, [preset]);
   const estimate = useUploadEstimate(fileSizeMb, queue);
+  const mediaAnalysis = useMemo(
+    () =>
+      analyzeMediaForTool({
+        toolSlug: tool.slug,
+        preset,
+        duration,
+        width: videoWidth,
+        height: videoHeight,
+        trimStart,
+        trimEnd,
+        fileSizeMb
+      }),
+    [duration, fileSizeMb, preset, tool.slug, trimEnd, trimStart, videoHeight, videoWidth]
+  );
+  const activeOutput = generatedOutputs[activeOutputIndex] || null;
 
   useEffect(() => {
     captionUrlRef.current = {
@@ -399,6 +382,8 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     setSyncMessage("Entre para sincronizar historico, projetos e exportacoes no dashboard.");
     setDownloadUrl(null);
     setDownloadFileName("");
+    setGeneratedOutputs([]);
+    setActiveOutputIndex(0);
     setCaptionPreviewText("");
     setCaptionBaseFileName("");
     setCaptionRenderMode("idle");
@@ -441,8 +426,12 @@ export function UploadPanel({ tool }: UploadPanelProps) {
       if (captionVttUrl) {
         URL.revokeObjectURL(captionVttUrl);
       }
+
+      generatedOutputs.forEach((item) => {
+        URL.revokeObjectURL(item.downloadUrl);
+      });
     };
-  }, [captionSrtUrl, captionVttUrl, downloadUrl, previewUrl]);
+  }, [captionSrtUrl, captionVttUrl, downloadUrl, generatedOutputs, previewUrl]);
 
   useEffect(() => {
     return () => {
@@ -507,6 +496,11 @@ export function UploadPanel({ tool }: UploadPanelProps) {
       setDownloadUrl(null);
       setDownloadFileName("");
     }
+    generatedOutputs.forEach((item) => {
+      URL.revokeObjectURL(item.downloadUrl);
+    });
+    setGeneratedOutputs([]);
+    setActiveOutputIndex(0);
     if (captionSrtUrl) {
       URL.revokeObjectURL(captionSrtUrl);
       setCaptionSrtUrl(null);
@@ -702,12 +696,7 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     }
   };
 
-  const syncWithDashboard = async (
-    sourceFile: File,
-    outputBlob: Blob,
-    outputFileName: string,
-    outputMimeType: string
-  ) => {
+  const syncWithDashboard = async (sourceFile: File, outputs: GeneratedOutput[]) => {
     setIsSyncing(true);
     setSyncMessage("Sincronizando arquivo, exportacao e projeto com o dashboard...");
 
@@ -743,45 +732,53 @@ export function UploadPanel({ tool }: UploadPanelProps) {
 
       await persistPreset();
 
-      const exportPrepareResponse = await postJson<ExportPrepareResponse>("/api/exports", {
-        fileName: outputFileName,
-        mimeType: outputMimeType,
-        sizeBytes: outputBlob.size,
-        toolSlug: tool.slug,
-        outputFormat,
-        resolution: getResolutionLabel(tool.slug, preset, outputFormat),
-        watermarkEnabled: false,
-        videoId: sourceVideoId,
-        processingJobId
-      });
+      const exportIds: string[] = [];
 
-      if (!exportPrepareResponse.ok) {
-        throw new Error(
-          getApiError(exportPrepareResponse.data, "export_prepare_failed")
+      for (const output of outputs) {
+        const exportPrepareResponse = await postJson<ExportPrepareResponse>("/api/exports", {
+          fileName: output.fileName,
+          mimeType: output.mimeType,
+          sizeBytes: await fetch(output.downloadUrl)
+            .then((response) => response.blob())
+            .then((blob) => blob.size),
+          toolSlug: tool.slug,
+          outputFormat,
+          resolution: output.resolution,
+          watermarkEnabled: false,
+          videoId: sourceVideoId,
+          processingJobId
+        });
+
+        if (!exportPrepareResponse.ok) {
+          throw new Error(
+            getApiError(exportPrepareResponse.data, "export_prepare_failed")
+          );
+        }
+
+        const exportPrepareData = exportPrepareResponse.data as ExportPrepareResponse;
+        const outputBlob = await fetch(output.downloadUrl).then((response) => response.blob());
+
+        await uploadToSignedUrl(
+          exportPrepareData.bucket,
+          exportPrepareData.upload.path,
+          exportPrepareData.upload.token,
+          outputBlob,
+          output.mimeType
         );
+
+        const exportId = exportPrepareData.export.id;
+        exportIds.push(exportId);
+
+        await postJson("/api/exports/complete", {
+          exportId,
+          processingJobId
+        });
       }
-
-      const exportPrepareData = exportPrepareResponse.data as ExportPrepareResponse;
-
-      await uploadToSignedUrl(
-        exportPrepareData.bucket,
-        exportPrepareData.upload.path,
-        exportPrepareData.upload.token,
-        outputBlob,
-        outputMimeType
-      );
-
-      const exportId = exportPrepareData.export.id;
-
-      await postJson("/api/exports/complete", {
-        exportId,
-        processingJobId
-      });
 
       const projectResponse = await postJson("/api/projects", {
         toolSlug: tool.slug,
         videoId: sourceVideoId,
-        lastExportId: exportId,
+        lastExportId: exportIds[0],
         name: createProjectName(sourceFile.name, preset),
         config: {
           preset,
@@ -854,6 +851,22 @@ export function UploadPanel({ tool }: UploadPanelProps) {
         trimEnd: duration > 0 ? trimEnd : 0,
         duration
       });
+      const smartWindows = supportsToolCapability(tool.slug, "multiClip")
+        ? buildSmartWindows({
+            toolSlug: tool.slug,
+            preset,
+            duration,
+            trimStart,
+            trimEnd: duration > 0 ? trimEnd : 0
+          })
+        : [
+            {
+              label: "Resultado principal",
+              trimStart: resolvedWindow.trimStart,
+              trimEnd: resolvedWindow.trimEnd,
+              headline: "Resultado principal"
+            }
+          ];
       const captionBaseName = selectedFile.name
         .replace(/\.[^.]+$/, "")
         .replace(/[^a-zA-Z0-9._-]/g, "-");
@@ -928,40 +941,50 @@ export function UploadPanel({ tool }: UploadPanelProps) {
         }
       }
 
-      const createPlan = (withBurnedCaptions: boolean) =>
+      const createPlan = (
+        withBurnedCaptions: boolean,
+        windowConfig: { trimStart: number; trimEnd: number; label: string },
+        outputSuffix?: string
+      ) =>
         buildProcessingPlan({
           toolSlug: tool.slug,
           inputFileName: selectedFile.name,
           outputFormat,
           qualityMode,
           preset,
-          trimStart,
-          trimEnd: duration > 0 ? trimEnd : 0,
+          trimStart: windowConfig.trimStart,
+          trimEnd: windowConfig.trimEnd,
           duration,
+          outputSuffix,
           burnedCaptions: withBurnedCaptions ? burnedCaptionConfig : undefined
         });
 
-      let plan = createPlan(Boolean(burnedCaptionConfig));
+      const processingWindows = supportsAutoCaptions ? [smartWindows[0]] : smartWindows;
+      const nextOutputs: GeneratedOutput[] = [];
 
-      try {
-        await ffmpeg.deleteFile(plan.outputFileName);
-      } catch {
-        // Ignora se o arquivo nao existir.
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
       }
+      generatedOutputs.forEach((item) => {
+        URL.revokeObjectURL(item.downloadUrl);
+      });
 
+      setGeneratedOutputs([]);
+      setActiveOutputIndex(0);
       setStatusMessage(
         supportsAutoCaptions && burnedCaptionConfig
           ? "Aplicando legenda automatica e exportando o clipe 1080p..."
-          : "Processando com FFmpeg no navegador..."
+          : processingWindows.length > 1
+            ? `Gerando ${processingWindows.length} saidas inteligentes no navegador...`
+            : "Processando com FFmpeg no navegador..."
       );
       setProgress(52);
 
-      let exitCode = await ffmpeg.exec(plan.args);
-
-      if (exitCode !== 0 && burnedCaptionConfig) {
-        nextCaptionRenderMode = "sidecar";
-        setCaptionStatusMessage(
-          "Seu navegador nao conseguiu queimar a legenda no video. O clip 1080p segue pronto com a legenda em SRT e VTT."
+      for (const [index, windowConfig] of processingWindows.entries()) {
+        let plan = createPlan(
+          Boolean(burnedCaptionConfig),
+          windowConfig,
+          processingWindows.length > 1 ? `saida-${index + 1}` : undefined
         );
 
         try {
@@ -970,38 +993,69 @@ export function UploadPanel({ tool }: UploadPanelProps) {
           // Ignora se o arquivo nao existir.
         }
 
-        plan = createPlan(false);
-        exitCode = await ffmpeg.exec(plan.args);
+        let exitCode = await ffmpeg.exec(plan.args);
+
+        if (exitCode !== 0 && burnedCaptionConfig) {
+          nextCaptionRenderMode = "sidecar";
+          setCaptionStatusMessage(
+            "Seu navegador nao conseguiu queimar a legenda no video. O clip 1080p segue pronto com a legenda em SRT e VTT."
+          );
+
+          try {
+            await ffmpeg.deleteFile(plan.outputFileName);
+          } catch {
+            // Ignora se o arquivo nao existir.
+          }
+
+          plan = createPlan(false, windowConfig, processingWindows.length > 1 ? `saida-${index + 1}` : undefined);
+          exitCode = await ffmpeg.exec(plan.args);
+        }
+
+        if (exitCode !== 0) {
+          throw new Error(`FFmpeg terminou com codigo ${exitCode}.`);
+        }
+
+        const outputData = await ffmpeg.readFile(plan.outputFileName);
+        if (!(outputData instanceof Uint8Array)) {
+          throw new Error("Nao foi possivel ler o arquivo processado.");
+        }
+
+        const normalizedOutput = new Uint8Array(outputData.byteLength);
+        normalizedOutput.set(outputData);
+        const outputBlob = new Blob([normalizedOutput.buffer], {
+          type: plan.outputMimeType
+        });
+        const nextDownloadUrl = URL.createObjectURL(outputBlob);
+
+        nextOutputs.push({
+          fileName: plan.outputFileName,
+          downloadUrl: nextDownloadUrl,
+          mimeType: plan.outputMimeType,
+          label: windowConfig.label,
+          resolution: getResolutionLabel(tool.slug, preset, outputFormat),
+          trimStart: windowConfig.trimStart,
+          trimEnd: windowConfig.trimEnd
+        });
+
+        setProcessingProgress(Math.round(((index + 1) / processingWindows.length) * 100));
       }
 
-      if (exitCode !== 0) {
-        throw new Error(`FFmpeg terminou com codigo ${exitCode}.`);
+      const firstOutput = nextOutputs[0];
+      if (!firstOutput) {
+        throw new Error("Nenhuma saida foi gerada.");
       }
 
-      const outputData = await ffmpeg.readFile(plan.outputFileName);
-      if (!(outputData instanceof Uint8Array)) {
-        throw new Error("Nao foi possivel ler o arquivo processado.");
-      }
-
-      if (downloadUrl) {
-        URL.revokeObjectURL(downloadUrl);
-      }
-
-      const normalizedOutput = new Uint8Array(outputData.byteLength);
-      normalizedOutput.set(outputData);
-      const outputBlob = new Blob([normalizedOutput.buffer], {
-        type: plan.outputMimeType
-      });
-      const nextDownloadUrl = URL.createObjectURL(outputBlob);
-
-      setDownloadUrl(nextDownloadUrl);
-      setDownloadFileName(plan.outputFileName);
-      setDownloadType(plan.outputMimeType.startsWith("audio/") ? "audio" : "video");
+      setGeneratedOutputs(nextOutputs);
+      setDownloadUrl(firstOutput.downloadUrl);
+      setDownloadFileName(firstOutput.fileName);
+      setDownloadType(firstOutput.mimeType.startsWith("audio/") ? "audio" : "video");
       setCaptionRenderMode(nextCaptionRenderMode);
       setProgress(100);
       setProcessingProgress(100);
       setStatusMessage(
-        `Resultado pronto em ${plan.outputLabel}. Baixe agora ou processe outro preset.`
+        nextOutputs.length > 1
+          ? `${nextOutputs.length} saidas prontas. Baixe cada uma delas ou envie o video para o worker premium.`
+          : `Resultado pronto em ${firstOutput.label}. Baixe agora ou processe outro preset.`
       );
 
       if (supportsAutoCaptions) {
@@ -1020,12 +1074,7 @@ export function UploadPanel({ tool }: UploadPanelProps) {
         }
       }
 
-      await syncWithDashboard(
-        selectedFile,
-        outputBlob,
-        plan.outputFileName,
-        plan.outputMimeType
-      );
+      await syncWithDashboard(selectedFile, nextOutputs);
     } catch (error) {
       setStatusMessage(
         error instanceof Error
@@ -1158,6 +1207,71 @@ export function UploadPanel({ tool }: UploadPanelProps) {
                 </div>
               </div>
             ) : null}
+
+            {selectedFile ? (
+              <div className="space-y-4 rounded-2xl border border-primary/20 bg-primary/8 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 text-primary">
+                    <WandSparkles className="h-5 w-5" />
+                    <span className="text-xs uppercase tracking-[0.22em]">
+                      Analise inteligente
+                    </span>
+                  </div>
+                  <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                    {mediaAnalysis.score}/100
+                  </span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/42">
+                      Duracao
+                    </p>
+                    <p className="mt-2 text-sm text-white/82">{mediaAnalysis.durationLabel}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/42">
+                      Enquadramento
+                    </p>
+                    <p className="mt-2 text-sm capitalize text-white/82">
+                      {mediaAnalysis.orientation}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/42">
+                      Leitura
+                    </p>
+                    <p className="mt-2 text-sm text-white/82">{mediaAnalysis.scoreLabel}</p>
+                  </div>
+                </div>
+                <p className="text-sm leading-7 text-white/78">{mediaAnalysis.summary}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {mediaAnalysis.recommendations.slice(0, 4).map((item) => (
+                    <div
+                      className="rounded-2xl border border-white/8 bg-black/20 p-3 text-sm leading-7 text-white/72"
+                      key={item}
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+                <div className="grid gap-3">
+                  {mediaAnalysis.windows.map((windowItem, index) => (
+                    <div
+                      className="flex items-center justify-between rounded-2xl border border-white/8 bg-black/20 px-4 py-3"
+                      key={`${windowItem.label}-${index}`}
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-white">{windowItem.label}</p>
+                        <p className="text-xs uppercase tracking-[0.16em] text-white/45">
+                          {windowItem.trimStart.toFixed(1)}s ate {windowItem.trimEnd.toFixed(1)}s
+                        </p>
+                      </div>
+                      <span className="text-sm text-primary">{windowItem.headline}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5">
@@ -1216,6 +1330,26 @@ export function UploadPanel({ tool }: UploadPanelProps) {
               <p className="mt-3 text-sm leading-7 text-white/80">
                 {tool.retentionPrompt}
               </p>
+            </div>
+
+            <div className="space-y-3 rounded-2xl border border-white/8 bg-black/20 p-4">
+              <div className="flex items-center gap-3 text-primary">
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="text-sm uppercase tracking-[0.2em]">
+                  Stack inteligente
+                </span>
+              </div>
+              <p className="text-sm leading-7 text-white/78">{engineProfile.primaryGoal}</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {engineProfile.highlights.map((item) => (
+                  <div
+                    className="rounded-2xl border border-white/8 bg-white/[0.03] p-3 text-sm leading-7 text-white/72"
+                    key={item}
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {supportsServerPremium ? (
@@ -1336,10 +1470,19 @@ export function UploadPanel({ tool }: UploadPanelProps) {
               </div>
             ) : null}
 
-            {downloadUrl ? (
+            {activeOutput ? (
               <div className="rounded-2xl border border-success/20 bg-success/10 p-4">
-                <p className="text-sm text-success">Resultado pronto para download</p>
-                <p className="mt-2 text-sm text-white/85">{downloadFileName}</p>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-success">Resultados prontos para download</p>
+                    <p className="mt-2 text-sm text-white/85">{activeOutput.fileName}</p>
+                  </div>
+                  {generatedOutputs.length > 1 ? (
+                    <span className="rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-medium text-success">
+                      {generatedOutputs.length} saidas
+                    </span>
+                  ) : null}
+                </div>
                 {supportsAutoCaptions ? (
                   <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/55">
                     {captionRenderMode === "burned"
@@ -1349,20 +1492,67 @@ export function UploadPanel({ tool }: UploadPanelProps) {
                         : "Clip 1080p pronto"}
                   </p>
                 ) : null}
+                {generatedOutputs.length > 1 ? (
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {generatedOutputs.map((item, index) => (
+                      <button
+                        className={`rounded-2xl border px-3 py-3 text-left transition ${
+                          index === activeOutputIndex
+                            ? "border-success/40 bg-white/10 text-white"
+                            : "border-white/8 bg-black/20 text-white/68 hover:border-white/16"
+                        }`}
+                        key={item.fileName}
+                        onClick={() => {
+                          setActiveOutputIndex(index);
+                          setDownloadUrl(item.downloadUrl);
+                          setDownloadFileName(item.fileName);
+                          setDownloadType(item.mimeType.startsWith("audio/") ? "audio" : "video");
+                        }}
+                        type="button"
+                      >
+                        <p className="text-sm font-medium">{item.label}</p>
+                        <p className="text-xs uppercase tracking-[0.16em] text-white/45">
+                          {item.trimStart.toFixed(1)}s ate {item.trimEnd.toFixed(1)}s
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 <div className="mt-4 rounded-2xl border border-white/8 bg-black/20 p-3">
                   {downloadType === "audio" ? (
-                    <audio className="w-full" controls src={downloadUrl} />
+                    <audio className="w-full" controls src={activeOutput.downloadUrl} />
                   ) : (
-                    <video className="aspect-video w-full rounded-xl" controls src={downloadUrl} />
+                    <video
+                      className="aspect-video w-full rounded-xl"
+                      controls
+                      src={activeOutput.downloadUrl}
+                    />
                   )}
                 </div>
-                <div className="mt-4">
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <Button asChild className="w-full">
-                    <a download={downloadFileName} href={downloadUrl}>
+                    <a download={activeOutput.fileName} href={activeOutput.downloadUrl}>
                       <Download className="h-4 w-4" />
-                      Baixar resultado
+                      Baixar atual
                     </a>
                   </Button>
+                  {generatedOutputs.length > 1 ? (
+                    <Button
+                      onClick={() => {
+                        generatedOutputs.forEach((item, index) => {
+                          window.setTimeout(() => {
+                            const anchor = document.createElement("a");
+                            anchor.href = item.downloadUrl;
+                            anchor.download = item.fileName;
+                            anchor.click();
+                          }, index * 250);
+                        });
+                      }}
+                      variant="secondary"
+                    >
+                      Baixar todas
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             ) : null}

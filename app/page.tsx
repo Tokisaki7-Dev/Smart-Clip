@@ -26,7 +26,10 @@ export const metadata = createMetadata({
     "compressao de video",
     "transformar video em clipe viral",
     "gerar varios clipes automaticos",
+    "gerar ganchos de video",
     "podcast para clipes",
+    "aula para clipes",
+    "depoimento para anuncio",
     "clipe com legenda automatica"
   ]
 });

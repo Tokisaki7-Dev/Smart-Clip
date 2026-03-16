@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles, Target, Zap } from "lucide-react";
 
+import { getToolEngineProfile } from "@/lib/tool-engine";
 import type { ToolDefinition } from "@/types";
 
 import { AdsenseSlot } from "@/components/ads/adsense-slot";
@@ -18,6 +19,7 @@ interface ToolPageProps {
 
 export function ToolPage({ tool }: ToolPageProps) {
   const relatedTools = getRelatedTools(tool.slug);
+  const engineProfile = getToolEngineProfile(tool.slug);
 
   return (
     <div className="space-y-20">
@@ -57,6 +59,20 @@ export function ToolPage({ tool }: ToolPageProps) {
                   key={item}
                 >
                   {item}
+                </div>
+              ))}
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              {engineProfile.steps.map((step, index) => (
+                <div
+                  className="rounded-[1.4rem] border border-white/10 bg-black/20 px-4 py-4"
+                  key={step}
+                >
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-white/38">
+                    Etapa {index + 1}
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-white/84">{step}</p>
                 </div>
               ))}
             </div>
@@ -101,16 +117,15 @@ export function ToolPage({ tool }: ToolPageProps) {
                 imediato e retorno. Por isso a pagina combina copy comercial,
                 upload visivel e CTA forte no topo.
               </p>
+              <p className="text-sm leading-7 text-white/55">{engineProfile.premiumStory}</p>
             </CardContent>
           </Card>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {tool.supportedOutputs.map((output) => (
+            {engineProfile.highlights.map((output) => (
               <Card className="border-white/10 bg-white/[0.03]" key={output}>
                 <CardContent className="space-y-3 p-5">
-                  <p className="text-xs uppercase tracking-[0.22em] text-white/42">
-                    Saida suportada
-                  </p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-white/42">Diferencial</p>
                   <p className="font-display text-2xl text-white">{output}</p>
                 </CardContent>
               </Card>
