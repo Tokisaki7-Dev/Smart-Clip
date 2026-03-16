@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { CheckCircle2, Clock3 } from "lucide-react";
 
 import { createMetadata } from "@/lib/metadata";
-import { isSupabaseConfigured } from "@/lib/env";
+import { isSupabaseAdminConfigured, isSupabaseConfigured } from "@/lib/env";
+import { syncPagBankState } from "@/lib/pagbank-sync";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { PageShell } from "@/components/layout/page-shell";
@@ -32,7 +34,7 @@ async function getAttemptSnapshot(attemptId?: string) {
     return null;
   }
 
-  const [{ data: attempt }, { data: profile }] = await Promise.all([
+  const [{ data: attempt }, { data: profile }, { data: subscription }] = await Promise.all([
     supabase
       .from("payment_attempts")
       .select("id, status, payment_method, amount_cents, credit_pack_id, created_at")
@@ -43,12 +45,20 @@ async function getAttemptSnapshot(attemptId?: string) {
       .from("users")
       .select("current_plan")
       .eq("id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("subscriptions")
+      .select("status, current_period_end, trial_ends_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle()
   ]);
 
   return {
     attempt,
-    currentPlan: profile?.current_plan || "free"
+    currentPlan: profile?.current_plan || "free",
+    subscription
   };
 }
 
@@ -61,7 +71,34 @@ export default async function BillingSuccessPage({
   }>;
 }) {
   const { attempt: attemptId } = await searchParams;
-  const snapshot = await getAttemptSnapshot(attemptId);
+  let snapshot = await getAttemptSnapshot(attemptId);
+
+  if (
+    attemptId &&
+    snapshot?.attempt &&
+    ["pending", "authorized"].includes(snapshot.attempt.status) &&
+    isSupabaseAdminConfigured()
+  ) {
+    try {
+      const supabase = await createSupabaseServerClient();
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const admin = createSupabaseAdminClient();
+        await syncPagBankState({
+          admin,
+          attemptId,
+          fallbackUserId: user.id
+        });
+        snapshot = await getAttemptSnapshot(attemptId);
+      }
+    } catch {
+      // Se a sincronizacao falhar, a pagina continua exibindo o ultimo estado conhecido.
+    }
+  }
+
   const attempt = snapshot?.attempt || null;
   const status = attempt?.status || "pending";
 
@@ -122,6 +159,20 @@ export default async function BillingSuccessPage({
                 {attempt?.amount_cents
                   ? `R$ ${(attempt.amount_cents / 100).toFixed(2).replace(".", ",")}`
                   : "processando"}
+              </span>
+            </div>
+            <div className="rounded-2xl border border-white/8 bg-black/20 p-4 text-sm text-white/78">
+              Expira em:{" "}
+              <span className="font-medium text-white">
+                {snapshot?.subscription?.current_period_end
+                  ? new Date(snapshot.subscription.current_period_end).toLocaleDateString("pt-BR")
+                  : "aguardando ciclo"}
+              </span>
+            </div>
+            <div className="rounded-2xl border border-white/8 bg-black/20 p-4 text-sm text-white/78">
+              Assinatura:{" "}
+              <span className="font-medium uppercase text-white">
+                {snapshot?.subscription?.status || "sem ciclo ativo"}
               </span>
             </div>
           </div>

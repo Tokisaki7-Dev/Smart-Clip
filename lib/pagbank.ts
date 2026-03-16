@@ -18,6 +18,8 @@ export interface PagBankCheckoutSessionInput extends PagBankCheckoutPayload {
   referenceId: string;
 }
 
+export type PagBankPayloadLike = Record<string, unknown>;
+
 interface PagBankCheckoutLink {
   rel?: string;
   href?: string;
@@ -45,6 +47,32 @@ function getAppUrl() {
 
 function isPagBankConfigured() {
   return Boolean(process.env.PAGBANK_SECRET_KEY);
+}
+
+async function pagBankFetch<T>(url: string) {
+  if (!isPagBankConfigured()) {
+    throw new Error("pagbank_not_configured");
+  }
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${process.env.PAGBANK_SECRET_KEY}`,
+      Accept: "application/json"
+    }
+  });
+
+  const data = (await response.json().catch(() => ({}))) as T & {
+    error_messages?: Array<{ description?: string }>;
+  };
+
+  if (!response.ok) {
+    throw new Error(
+      data.error_messages?.map((item) => item.description).filter(Boolean).join(" | ") ||
+        "pagbank_request_failed"
+    );
+  }
+
+  return data;
 }
 
 function mapPaymentMethod(paymentMethod: PagBankCheckoutPayload["paymentMethod"]) {
@@ -180,6 +208,16 @@ export async function createPagBankCheckoutSession(input: PagBankCheckoutSession
     payload: input,
     raw: data
   };
+}
+
+export async function fetchPagBankCheckout(checkoutId: string) {
+  return pagBankFetch<PagBankPayloadLike>(`${getPagBankApiUrl()}/checkouts/${checkoutId}`);
+}
+
+export async function fetchPagBankSubscription(subscriptionId: string) {
+  return pagBankFetch<PagBankPayloadLike>(
+    `${getPagBankRecurrenceApiUrl()}/subscriptions/${subscriptionId}`
+  );
 }
 
 export async function cancelPagBankSubscription(subscriptionId: string) {
