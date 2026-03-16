@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "worker:premium": "node worker/premium-worker.mjs",
+    "worker:premium:once": "node worker/premium-worker.mjs --once"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",

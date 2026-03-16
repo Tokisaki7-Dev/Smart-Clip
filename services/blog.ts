@@ -11,6 +11,92 @@ export const blogCategories = [
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "como-gerar-varios-clipes-automaticos-do-mesmo-video",
+    title: "Como gerar varios clipes automaticos do mesmo video sem cortar tudo na mao",
+    excerpt:
+      "Um fluxo para transformar um video longo em varios clipes curtos com mais velocidade e mais chance de descoberta.",
+    description:
+      "Aprenda a gerar varios clipes automaticos do mesmo video usando cortes curtos, formatos sociais e fila premium.",
+    category: "Clipes Virais",
+    publishedAt: "15 mar 2026",
+    readingTime: "7 min",
+    keywords: [
+      "gerar varios clipes automaticos",
+      "varios cortes do mesmo video",
+      "video longo em varios clipes",
+      "clipes automaticos para redes sociais"
+    ],
+    sections: [
+      {
+        heading: "Por que varios clipes valem mais do que um so corte",
+        paragraphs: [
+          "Quando um video longo rende varias pecas curtas, voce ganha mais testes, mais superficie de descoberta e mais reaproveitamento por upload.",
+          "Esse tipo de retorno melhora muito o valor percebido do produto porque o usuario sente que extraiu mais de um unico material."
+        ]
+      },
+      {
+        heading: "Onde a fila premium entra",
+        paragraphs: [
+          "Na pratica, o trabalho pesado nao e so exportar. E descobrir janelas boas com rapidez. Por isso a fila premium ajuda a encontrar trechos mais fortes e devolver varias saidas para o dashboard.",
+          "Essa camada e especialmente forte para podcast, live, aula e entrevistas longas."
+        ],
+        bullets: [
+          "Use ate 3 clipes para testar ganchos diferentes",
+          "Baixe cada saida separadamente pelo dashboard",
+          "Salve o preset e repita o mesmo fluxo no proximo episodio"
+        ]
+      }
+    ],
+    relatedTools: [
+      "gerar-varios-clipes-automaticos",
+      "podcast-para-clipes",
+      "video-para-clipe-viral"
+    ]
+  },
+  {
+    slug: "como-transformar-podcast-em-clipes-curtos-para-tiktok-e-reels",
+    title: "Como transformar podcast em clipes curtos para TikTok, Shorts e Reels",
+    excerpt:
+      "Podcast longo pode virar varias pecas curtas de discovery quando o fluxo ja nasce com corte, verticalizacao e ritmo social.",
+    description:
+      "Veja como transformar podcast em clipes curtos com formato vertical e distribuicao mais forte nas redes sociais.",
+    category: "Clipes Virais",
+    publishedAt: "15 mar 2026",
+    readingTime: "6 min",
+    keywords: [
+      "podcast para clipes",
+      "podcast para reels",
+      "podcast para shorts",
+      "cortes de podcast online"
+    ],
+    sections: [
+      {
+        heading: "O que trava a maioria dos podcasts na distribuicao",
+        paragraphs: [
+          "Muita gente grava o episodio inteiro, mas trava na hora de recortar, verticalizar e publicar com consistencia. O gargalo quase sempre aparece depois da gravacao.",
+          "Uma ferramenta boa para podcast encurta esse caminho e aproxima o episodio de varias plataformas ao mesmo tempo."
+        ]
+      },
+      {
+        heading: "Como ganhar mais recorrencia com o mesmo episodio",
+        paragraphs: [
+          "Quando cada episodio rende varios cortes, a frequencia de retorno ao produto sobe. Esse e um dos sinais mais fortes de retencao para um SaaS de video.",
+          "Por isso podcast para clipes e uma das rotas mais valiosas para atrair criadores e transformar uso pontual em rotina."
+        ],
+        bullets: [
+          "Transforme episodios em cortes de 30s, 45s e 59s",
+          "Use o worker para gerar varios clipes automaticamente",
+          "Combine legenda automatica quando o formato pedir mais retenção"
+        ]
+      }
+    ],
+    relatedTools: [
+      "podcast-para-clipes",
+      "video-para-clipe-com-legenda-automatica",
+      "gerar-varios-clipes-automaticos"
+    ]
+  },
+  {
     slug: "como-gerar-clipes-1080p-com-legenda-automatica-para-redes-sociais",
     title: "Como gerar clipes 1080p com legenda automatica para TikTok, Shorts e Reels",
     excerpt:

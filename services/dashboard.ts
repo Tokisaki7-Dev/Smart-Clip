@@ -37,22 +37,31 @@ export const dashboardSnapshot: DashboardSnapshot = {
   ],
   recentExports: [
     {
+      id: "demo-export-1",
       name: "podcast-corte-episodio-12-reels.mp4",
       format: "MP4",
       resolution: "720p",
-      finishedAt: "Hoje, 13:42"
+      status: "completed",
+      finishedAt: "Hoje, 13:42",
+      toolSlug: "video-para-reels"
     },
     {
+      id: "demo-export-2",
       name: "teaser-whatsapp-compactado.mp4",
       format: "MP4",
       resolution: "720p",
-      finishedAt: "Hoje, 11:18"
+      status: "completed",
+      finishedAt: "Hoje, 11:18",
+      toolSlug: "video-para-anuncio-curto"
     },
     {
+      id: "demo-export-3",
       name: "entrevista-audio.mp3",
       format: "MP3",
       resolution: "Audio",
-      finishedAt: "Ontem, 21:05"
+      status: "completed",
+      finishedAt: "Ontem, 21:05",
+      toolSlug: "extrair-audio"
     }
   ],
   recentProjects: [
@@ -65,6 +74,31 @@ export const dashboardSnapshot: DashboardSnapshot = {
       name: "Presets de atendimento WhatsApp",
       tool: "Video para WhatsApp",
       lastEdited: "Ontem"
+    }
+  ],
+  processingJobs: [
+    {
+      id: "demo-job-1",
+      tool: "Transformar video em clipe com legenda automatica",
+      status: "processing",
+      createdAt: "Hoje, 14:05",
+      modeLabel: "Worker premium",
+      outputs: []
+    },
+    {
+      id: "demo-job-2",
+      tool: "Gerar varios clipes automaticos do mesmo video",
+      status: "completed",
+      createdAt: "Hoje, 09:22",
+      modeLabel: "Ate 3 clipes",
+      outputs: [
+        {
+          id: "demo-export-1",
+          label: "Clip 1",
+          resolution: "1080p",
+          status: "completed"
+        }
+      ]
     }
   ]
 };

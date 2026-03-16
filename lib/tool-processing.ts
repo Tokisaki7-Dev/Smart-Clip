@@ -42,6 +42,9 @@ const toolPresetMap: Partial<Record<ToolSlug, readonly string[]>> = {
     "Clip com legenda 45s",
     "Clip com legenda podcast 59s"
   ],
+  "gerar-varios-clipes-automaticos": ["3 clipes 20s", "3 clipes 30s", "3 clipes 45s"],
+  "podcast-para-clipes": ["Podcast 30s", "Podcast 45s", "Podcast 59s"],
+  "video-para-anuncio-curto": ["Anuncio 15s", "Anuncio 20s", "Anuncio 30s"],
   "video-para-clipe-viral": [
     "Clip viral 30s",
     "Clip viral 45s",
@@ -69,6 +72,12 @@ export function getDefaultPresetForTool(slug: ToolSlug) {
   switch (slug) {
     case "video-para-clipe-com-legenda-automatica":
       return "Clip com legenda 45s";
+    case "gerar-varios-clipes-automaticos":
+      return "3 clipes 30s";
+    case "podcast-para-clipes":
+      return "Podcast 45s";
+    case "video-para-anuncio-curto":
+      return "Anuncio 20s";
     case "video-para-clipe-viral":
       return "Clip viral 45s";
     case "cortar-video-automaticamente":
@@ -196,6 +205,24 @@ function resolveTrimWindow(params: {
           ? Math.min(Math.max(duration * 0.16, 1.25), duration - safeTarget - 1)
           : 0;
       break;
+    case "gerar-varios-clipes-automaticos":
+      start =
+        duration > safeTarget + 12
+          ? Math.min(Math.max(duration * 0.14, 1.2), duration - safeTarget - 1)
+          : 0;
+      break;
+    case "podcast-para-clipes":
+      start =
+        duration > safeTarget + 10
+          ? Math.min(Math.max(duration * 0.18, 1.5), duration - safeTarget - 1)
+          : 0;
+      break;
+    case "video-para-anuncio-curto":
+      start =
+        duration > safeTarget + 8
+          ? Math.min(Math.max(duration * 0.1, 0.8), duration - safeTarget - 1)
+          : 0;
+      break;
     case "video-para-clipe-viral":
       start =
         duration > safeTarget + 8
@@ -261,6 +288,18 @@ function getVerticalBlurComplex(enhancement = "", captionFilter?: string) {
 }
 
 function getVisualEnhancement(preset: string, toolSlug: ToolSlug) {
+  if (toolSlug === "video-para-anuncio-curto") {
+    return "eq=contrast=1.1:saturation=1.16:brightness=0.02,unsharp=5:5:0.82:3:3:0.3";
+  }
+
+  if (toolSlug === "podcast-para-clipes") {
+    return "eq=contrast=1.06:saturation=1.12:brightness=0.015,unsharp=5:5:0.74:3:3:0.24";
+  }
+
+  if (toolSlug === "gerar-varios-clipes-automaticos") {
+    return "eq=contrast=1.07:saturation=1.16:brightness=0.02,unsharp=5:5:0.72:3:3:0.26";
+  }
+
   if (toolSlug === "video-para-clipe-com-legenda-automatica") {
     return "eq=contrast=1.08:saturation=1.2:brightness=0.02,unsharp=5:5:0.78:3:3:0.28";
   }
@@ -285,6 +324,10 @@ function getVisualEnhancement(preset: string, toolSlug: ToolSlug) {
 }
 
 function getPlaybackSpeed(preset: string, toolSlug: ToolSlug) {
+  if (toolSlug === "video-para-anuncio-curto") {
+    return preset === "Anuncio 15s" ? 1.08 : preset === "Anuncio 20s" ? 1.05 : 1.03;
+  }
+
   if (toolSlug === "video-para-clipe-com-legenda-automatica") {
     if (preset === "Clip com legenda 30s") {
       return 1.03;
@@ -312,12 +355,24 @@ function getSimpleVideoFilter(params: {
     preset === "Clip com legenda 30s" ||
     preset === "Clip com legenda 45s" ||
     preset === "Clip com legenda podcast 59s" ||
+    preset === "3 clipes 20s" ||
+    preset === "3 clipes 30s" ||
+    preset === "3 clipes 45s" ||
+    preset === "Podcast 30s" ||
+    preset === "Podcast 45s" ||
+    preset === "Podcast 59s" ||
+    preset === "Anuncio 15s" ||
+    preset === "Anuncio 20s" ||
+    preset === "Anuncio 30s" ||
     preset === "Reels 1080x1920" ||
     preset === "Shorts 1080x1920" ||
     preset === "TikTok 1080x1920" ||
     preset === "Stories 1080x1920" ||
     preset === "Vertical com crop central" ||
     toolSlug === "video-para-clipe-com-legenda-automatica" ||
+    toolSlug === "gerar-varios-clipes-automaticos" ||
+    toolSlug === "podcast-para-clipes" ||
+    toolSlug === "video-para-anuncio-curto" ||
     toolSlug === "video-para-reels" ||
     toolSlug === "video-para-shorts" ||
     toolSlug === "video-para-tiktok" ||
@@ -345,6 +400,14 @@ function getSimpleVideoFilter(params: {
 }
 
 function getVideoBitrate(toolSlug: ToolSlug, qualityMode: QualityMode, preset: string) {
+  if (toolSlug === "video-para-anuncio-curto") {
+    return qualityMode === "higher" ? "3400k" : qualityMode === "smaller" ? "2000k" : "2800k";
+  }
+
+  if (toolSlug === "podcast-para-clipes" || toolSlug === "gerar-varios-clipes-automaticos") {
+    return qualityMode === "higher" ? "3300k" : qualityMode === "smaller" ? "1800k" : "2600k";
+  }
+
   if (toolSlug === "video-para-clipe-com-legenda-automatica") {
     return qualityMode === "higher" ? "3600k" : qualityMode === "smaller" ? "2200k" : "3000k";
   }
@@ -390,6 +453,9 @@ function getAudioFilter(preset: string, toolSlug: ToolSlug) {
 function shouldUseVerticalComplex(toolSlug: ToolSlug, preset: string) {
   return (
     toolSlug === "video-para-clipe-com-legenda-automatica" ||
+    toolSlug === "gerar-varios-clipes-automaticos" ||
+    toolSlug === "podcast-para-clipes" ||
+    toolSlug === "video-para-anuncio-curto" ||
     toolSlug === "video-para-clipe-viral" ||
     toolSlug === "video-horizontal-para-vertical" ||
     preset === "Vertical com blur"

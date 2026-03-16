@@ -10,12 +10,16 @@ export const seoClusters: SeoCluster[] = [
     keywords: [
       "clipe com legenda automatica",
       "transformar video em clipe viral",
+      "gerar varios clipes automaticos",
+      "podcast para clipes",
       "cortar video automaticamente",
       "criar trailer curto",
       "video curto para tiktok"
     ],
     relatedRoutes: [
       "/video-para-clipe-com-legenda-automatica",
+      "/gerar-varios-clipes-automaticos",
+      "/podcast-para-clipes",
       "/video-para-clipe-viral",
       "/cortar-video-automaticamente",
       "/criar-trailer-curto",
@@ -26,6 +30,11 @@ export const seoClusters: SeoCluster[] = [
         question: "O SmartClip consegue encurtar videos automaticamente?",
         answer:
           "Sim. As novas rotas usam presets inteligentes para cortar, condensar e deixar o arquivo mais pronto para formatos curtos."
+      },
+      {
+        question: "Consigo receber mais de um clipe do mesmo video?",
+        answer:
+          "Sim. A fila premium foi preparada para gerar varias saidas curtas do mesmo upload quando a ferramenta suporta esse fluxo."
       },
       {
         question: "Posso transformar um video horizontal em algo pronto para TikTok?",

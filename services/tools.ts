@@ -36,6 +36,93 @@ export const toolDefinitions: ToolDefinition[] = [
     featured: true
   },
   {
+    slug: "gerar-varios-clipes-automaticos",
+    title: "Gerar varios clipes automaticos do mesmo video",
+    kicker: "Fila premium",
+    category: "Automacao premium",
+    attentionLabel: "Ate 3 clipes",
+    shortDescription:
+      "Suba um video longo e gere ate 3 clipes curtos com selecao automatica de trechos para redes sociais.",
+    longDescription:
+      "Essa ferramenta foi desenhada para quem quer transformar um video longo em varios clipes prontos sem escolher cada trecho na mao. O modo premium envia o arquivo para o worker, detecta janelas melhores com heuristicas de fala e entrega varias saidas curtas para testar em TikTok, Shorts, Reels e Stories.",
+    seoTitle: "Gerar varios clipes automaticos online do mesmo video",
+    seoDescription:
+      "Transforme um video longo em varios clipes curtos automaticamente com worker premium, cortes mais promissores e formatos prontos para redes sociais.",
+    supportedOutputs: ["3 clipes", "1080x1920", "Reels-safe", "Shorts-safe"],
+    useCases: [
+      "Podcast em varios cortes",
+      "Aula longa em clips curtos",
+      "Lives em varios formatos",
+      "Teste rapido de ganchos"
+    ],
+    retentionPrompt:
+      "Quando um video rende varios clipes bons, o retorno ao produto fica muito mais natural nas proximas gravacoes.",
+    audience:
+      "Criadores, podcasters e times que querem volume de conteudo sem lapidar trecho por trecho na mao.",
+    promise:
+      "Aumenta muito o valor percebido porque um unico upload pode virar varios criativos publicaveis.",
+    platforms: ["TikTok", "Shorts", "Reels", "Stories"],
+    featured: true
+  },
+  {
+    slug: "podcast-para-clipes",
+    title: "Transformar podcast em clipes curtos",
+    kicker: "Repurpose pesado",
+    category: "Automacao premium",
+    attentionLabel: "Podcast para social",
+    shortDescription:
+      "Pegue um episodio, corte trechos mais fortes, verticalize e gere clips curtos com cara de podcast social.",
+    longDescription:
+      "Perfeito para quem grava podcast ou entrevista e quer republicar em volume. O fluxo local ajuda a validar um corte rapido, enquanto o modo premium no worker pode gerar varias saidas curtas para discovery, com framing vertical e audio mais forte.",
+    seoTitle: "Transformar podcast em clipes curtos para redes sociais",
+    seoDescription:
+      "Transforme podcast em clipes curtos para TikTok, Shorts, Reels e Stories com formatos verticais e fluxo premium.",
+    supportedOutputs: ["Podcast 30s", "Podcast 45s", "Podcast 59s", "1080x1920"],
+    useCases: [
+      "Podcast de negocio",
+      "Entrevista em cortes",
+      "Mesa redonda em clips",
+      "Conteudo educativo"
+    ],
+    retentionPrompt:
+      "Esse e o tipo de ferramenta que vira rotina quando o podcast entra em calendario fixo.",
+    audience:
+      "Podcasters, educadores, marcas e equipes que gravam conversas longas e precisam de distribuicao social.",
+    promise:
+      "Transforma um ativo longo em varias pecas curtas de descoberta com muito menos retrabalho.",
+    platforms: ["TikTok", "Shorts", "Reels", "YouTube"],
+    featured: true
+  },
+  {
+    slug: "video-para-anuncio-curto",
+    title: "Transformar video em anuncio curto",
+    kicker: "Criativo rapido",
+    category: "Clipes virais",
+    attentionLabel: "Ads e UGC",
+    shortDescription:
+      "Corte, compacte e deixe o video mais curto para criativos de anuncio, UGC e teste de gancho.",
+    longDescription:
+      "Essa rota foi pensada para marketing de resposta direta, ecommerce e testes de criativo. O fluxo reduz a duracao, melhora o ritmo, gera formato social e ajuda a colocar no ar uma versao muito mais utilizavel para campanhas curtas.",
+    seoTitle: "Transformar video em anuncio curto para redes sociais",
+    seoDescription:
+      "Crie anuncios curtos para TikTok, Reels e Shorts com duracao menor, ritmo mais direto e saida pronta para campanhas.",
+    supportedOutputs: ["Anuncio 15s", "Anuncio 20s", "Anuncio 30s", "1080x1920"],
+    useCases: [
+      "Teste de UGC",
+      "Criativo de ecommerce",
+      "Anuncio para Reels",
+      "Variacao curta de venda"
+    ],
+    retentionPrompt:
+      "Salve um preset de criativo e reduza muito o tempo para testar novas variacoes.",
+    audience:
+      "Gestores de trafego, social media, afiliados e marcas que precisam de criativo curto com rapidez.",
+    promise:
+      "Aproxima muito o produto de quem quer usar agora e voltar varias vezes por semana.",
+    platforms: ["TikTok", "Reels", "Shorts", "Ads"],
+    featured: true
+  },
+  {
     slug: "video-para-clipe-viral",
     title: "Transformar video em clipe viral",
     kicker: "Motor de descoberta",
@@ -370,6 +457,7 @@ export const toolDefinitions: ToolDefinition[] = [
 ];
 
 export const toolCategories = [
+  "Automacao premium",
   "Clipes virais",
   "Formatos sociais",
   "Edicao essencial",

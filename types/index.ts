@@ -2,6 +2,9 @@ export type PlanId = "free" | "starter" | "creator" | "pro";
 
 export type ToolSlug =
   | "video-para-clipe-com-legenda-automatica"
+  | "gerar-varios-clipes-automaticos"
+  | "podcast-para-clipes"
+  | "video-para-anuncio-curto"
   | "video-para-clipe-viral"
   | "cortar-video-automaticamente"
   | "video-horizontal-para-vertical"
@@ -121,15 +124,31 @@ export interface DashboardSnapshot {
     status: string;
   }>;
   recentExports: Array<{
+    id: string;
     name: string;
     format: string;
     resolution: string;
+    status: string;
     finishedAt: string;
+    toolSlug: string;
   }>;
   recentProjects: Array<{
     name: string;
     tool: string;
     lastEdited: string;
+  }>;
+  processingJobs: Array<{
+    id: string;
+    tool: string;
+    status: string;
+    createdAt: string;
+    modeLabel: string;
+    outputs: Array<{
+      id: string;
+      label: string;
+      resolution: string;
+      status: string;
+    }>;
   }>;
 }
 

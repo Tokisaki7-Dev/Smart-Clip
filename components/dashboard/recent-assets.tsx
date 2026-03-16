@@ -1,4 +1,5 @@
 import { Clock3, FileVideo, RefreshCw } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -68,10 +69,21 @@ export function RecentAssets({ snapshot }: RecentAssetsProps) {
                     {item.format} • {item.resolution} • {item.finishedAt}
                   </p>
                 </div>
-                <Button size="sm" variant="secondary">
-                  <RefreshCw className="h-4 w-4" />
-                  Repetir
-                </Button>
+                <div className="flex gap-2">
+                  {item.status === "completed" ? (
+                    <Button asChild size="sm" variant="secondary">
+                      <a href={`/api/exports/${item.id}/download`}>
+                        Baixar
+                      </a>
+                    </Button>
+                  ) : null}
+                  <Button asChild size="sm" variant="secondary">
+                    <Link href={`/${item.toolSlug}#smartclip-uploader`}>
+                      <RefreshCw className="h-4 w-4" />
+                      Repetir
+                    </Link>
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

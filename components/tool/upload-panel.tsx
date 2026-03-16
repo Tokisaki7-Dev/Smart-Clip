@@ -1,7 +1,7 @@
 "use client";
 
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Download, LoaderCircle, Scissors, Upload, WandSparkles } from "lucide-react";
+import { Cpu, Download, LoaderCircle, Scissors, Upload, WandSparkles } from "lucide-react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 
@@ -104,6 +104,15 @@ function getResolutionLabel(toolSlug: ToolSlug, preset: string, outputFormat: Ou
     preset === "Clip com legenda 30s" ||
     preset === "Clip com legenda 45s" ||
     preset === "Clip com legenda podcast 59s" ||
+    preset === "3 clipes 20s" ||
+    preset === "3 clipes 30s" ||
+    preset === "3 clipes 45s" ||
+    preset === "Podcast 30s" ||
+    preset === "Podcast 45s" ||
+    preset === "Podcast 59s" ||
+    preset === "Anuncio 15s" ||
+    preset === "Anuncio 20s" ||
+    preset === "Anuncio 30s" ||
     preset === "Reels 1080x1920" ||
     preset === "Shorts 1080x1920" ||
     preset === "Vertical com blur" ||
@@ -113,6 +122,9 @@ function getResolutionLabel(toolSlug: ToolSlug, preset: string, outputFormat: Ou
     preset === "UGC 20s" ||
     preset === "Podcast 59s" ||
     toolSlug === "video-para-clipe-com-legenda-automatica" ||
+    toolSlug === "gerar-varios-clipes-automaticos" ||
+    toolSlug === "podcast-para-clipes" ||
+    toolSlug === "video-para-anuncio-curto" ||
     toolSlug === "video-para-clipe-viral" ||
     toolSlug === "video-horizontal-para-vertical"
   ) {
@@ -128,6 +140,41 @@ function getResolutionLabel(toolSlug: ToolSlug, preset: string, outputFormat: Ou
   }
 
   return "original";
+}
+
+function getPremiumQueueSettings(toolSlug: ToolSlug, preset: string) {
+  switch (toolSlug) {
+    case "gerar-varios-clipes-automaticos":
+      return {
+        captionsRequested: false,
+        multiClipCount: 3,
+        label: preset.includes("45s") ? "Gerar 3 clipes 45s no worker" : "Gerar 3 clipes no worker"
+      };
+    case "podcast-para-clipes":
+      return {
+        captionsRequested: false,
+        multiClipCount: 3,
+        label: "Gerar varios cortes de podcast"
+      };
+    case "video-para-clipe-com-legenda-automatica":
+      return {
+        captionsRequested: true,
+        multiClipCount: 1,
+        label: "Enviar para worker com legenda"
+      };
+    case "video-para-anuncio-curto":
+      return {
+        captionsRequested: false,
+        multiClipCount: 1,
+        label: "Gerar criativo curto no worker"
+      };
+    default:
+      return {
+        captionsRequested: false,
+        multiClipCount: 1,
+        label: "Enviar para fila premium"
+      };
+  }
 }
 
 async function postJson<T>(url: string, payload: unknown): Promise<ApiResult<T | ErrorPayload>> {
@@ -241,10 +288,19 @@ export function UploadPanel({ tool }: UploadPanelProps) {
   });
   const isAudioTool = isAudioOnlyTool(tool.slug);
   const supportsAutoCaptions = tool.slug === "video-para-clipe-com-legenda-automatica";
+  const supportsServerPremium =
+    tool.slug === "video-para-clipe-com-legenda-automatica" ||
+    tool.slug === "video-para-clipe-viral" ||
+    tool.slug === "gerar-varios-clipes-automaticos" ||
+    tool.slug === "podcast-para-clipes" ||
+    tool.slug === "video-para-anuncio-curto";
   const formatOptions = useMemo(() => getFormatOptions(tool.slug), [tool.slug]);
   const presetOptions = useMemo(() => getPresetOptions(tool.slug), [tool.slug]);
   const isSmartTool =
     tool.slug === "video-para-clipe-com-legenda-automatica" ||
+    tool.slug === "gerar-varios-clipes-automaticos" ||
+    tool.slug === "podcast-para-clipes" ||
+    tool.slug === "video-para-anuncio-curto" ||
     tool.slug === "video-para-clipe-viral" ||
     tool.slug === "cortar-video-automaticamente" ||
     tool.slug === "video-horizontal-para-vertical" ||
@@ -270,6 +326,7 @@ export function UploadPanel({ tool }: UploadPanelProps) {
   const [engineReady, setEngineReady] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isQueueingPremium, setIsQueueingPremium] = useState(false);
   const [duration, setDuration] = useState(0);
   const [trimStart, setTrimStart] = useState(0);
   const [trimEnd, setTrimEnd] = useState(0);
@@ -539,6 +596,112 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     );
   };
 
+  const prepareSourceVideoRecord = async (sourceFile: File) => {
+    const sourceUploadResponse = await postJson<UploadPrepareResponse>("/api/uploads", {
+      fileName: sourceFile.name,
+      mimeType: sourceFile.type || "video/mp4",
+      sizeBytes: sourceFile.size
+    });
+
+    if (sourceUploadResponse.status === 401) {
+      return {
+        unauthorized: true as const
+      };
+    }
+
+    if (!sourceUploadResponse.ok) {
+      throw new Error(getApiError(sourceUploadResponse.data, "upload_prepare_failed"));
+    }
+
+    const sourceUploadData = sourceUploadResponse.data as UploadPrepareResponse;
+
+    await uploadToSignedUrl(
+      sourceUploadData.bucket,
+      sourceUploadData.upload.path,
+      sourceUploadData.upload.token,
+      sourceFile,
+      sourceFile.type || "video/mp4"
+    );
+
+    const sourceVideoId = sourceUploadData.video.id;
+
+    await postJson("/api/uploads/complete", {
+      videoId: sourceVideoId,
+      durationSeconds: duration > 0 ? Math.round(duration) : undefined,
+      width: videoWidth || undefined,
+      height: videoHeight || undefined
+    });
+
+    return {
+      sourceVideoId
+    };
+  };
+
+  const queuePremiumServerJob = async () => {
+    if (!selectedFile) {
+      setStatusMessage("Escolha um arquivo antes de enviar para o worker premium.");
+      return;
+    }
+
+    setIsQueueingPremium(true);
+    setSyncMessage("Enviando arquivo original para a fila premium...");
+
+    try {
+      const prepared = await prepareSourceVideoRecord(selectedFile);
+
+      if ("unauthorized" in prepared) {
+        setSyncMessage(
+          "Entre para usar o worker premium, salvar os clips automaticos e baixar as saidas pelo dashboard."
+        );
+        return;
+      }
+
+      await persistPreset();
+
+      const premiumSettings = getPremiumQueueSettings(tool.slug, preset);
+      const jobResponse = await postJson<JobCreateResponse>("/api/jobs", {
+        toolSlug: tool.slug,
+        sourceFile: selectedFile.name,
+        sourceVideoId: prepared.sourceVideoId,
+        preset,
+        mode: "premium",
+        outputFormat,
+        qualityMode,
+        trimStart,
+        trimEnd: duration > 0 ? trimEnd : 0,
+        duration,
+        captionsRequested: premiumSettings.captionsRequested,
+        multiClipCount: premiumSettings.multiClipCount
+      });
+
+      if (!jobResponse.ok) {
+        const message = getApiError(jobResponse.data, "premium_job_failed");
+        if (message === "monthly_automation_limit_reached") {
+          throw new Error(
+            "Voce atingiu o limite mensal de automacoes do seu plano. Faça upgrade ou use creditos."
+          );
+        }
+
+        throw new Error(message);
+      }
+
+      setStatusMessage(
+        "Job premium criado. O worker separado vai processar o arquivo e publicar os resultados no dashboard."
+      );
+      setSyncMessage(
+        "Fila premium ativa. Abra o dashboard para acompanhar status, clips concluidos e downloads."
+      );
+    } catch (error) {
+      setSyncMessage(
+        error instanceof Error
+          ? `Nao foi possivel criar o job premium: ${error.message}`
+          : "Nao foi possivel criar o job premium."
+      );
+    } finally {
+      setIsQueueingPremium(false);
+    }
+  };
+
   const syncWithDashboard = async (
     sourceFile: File,
     outputBlob: Blob,
@@ -549,49 +712,29 @@ export function UploadPanel({ tool }: UploadPanelProps) {
     setSyncMessage("Sincronizando arquivo, exportacao e projeto com o dashboard...");
 
     try {
-      const sourceUploadResponse = await postJson<UploadPrepareResponse>("/api/uploads", {
-        fileName: sourceFile.name,
-        mimeType: sourceFile.type || "video/mp4",
-        sizeBytes: sourceFile.size
-      });
+      const prepared = await prepareSourceVideoRecord(sourceFile);
 
-      if (sourceUploadResponse.status === 401) {
+      if ("unauthorized" in prepared) {
         setSyncMessage(
           "Resultado pronto no navegador. Entre para salvar historico, projetos e exportacoes na sua conta."
         );
         return;
       }
 
-      if (!sourceUploadResponse.ok) {
-        throw new Error(
-          getApiError(sourceUploadResponse.data, "upload_prepare_failed")
-        );
-      }
-
-      const sourceUploadData = sourceUploadResponse.data as UploadPrepareResponse;
-
-      await uploadToSignedUrl(
-        sourceUploadData.bucket,
-        sourceUploadData.upload.path,
-        sourceUploadData.upload.token,
-        sourceFile,
-        sourceFile.type || "video/mp4"
-      );
-
-      const sourceVideoId = sourceUploadData.video.id;
-
-      await postJson("/api/uploads/complete", {
-        videoId: sourceVideoId,
-        durationSeconds: duration > 0 ? Math.round(duration) : undefined,
-        width: videoWidth || undefined,
-        height: videoHeight || undefined
-      });
+      const sourceVideoId = prepared.sourceVideoId;
 
       const jobResponse = await postJson<JobCreateResponse>("/api/jobs", {
         toolSlug: tool.slug,
         sourceFile: sourceFile.name,
         sourceVideoId,
-        preset
+        preset,
+        mode: "local",
+        outputFormat,
+        qualityMode,
+        trimStart,
+        trimEnd,
+        duration,
+        captionsRequested: supportsAutoCaptions
       });
 
       const jobData = jobResponse.data as JobCreateResponse;
@@ -1075,6 +1218,30 @@ export function UploadPanel({ tool }: UploadPanelProps) {
               </p>
             </div>
 
+            {supportsServerPremium ? (
+              <div className="space-y-3 rounded-2xl border border-primary/20 bg-primary/8 p-4">
+                <div className="flex items-center gap-3 text-primary">
+                  <Cpu className="h-5 w-5" />
+                  <span className="text-sm uppercase tracking-[0.2em]">
+                    Worker premium
+                  </span>
+                </div>
+                <p className="text-sm leading-7 text-white/80">
+                  Envie o original para o worker separado quando quiser deteccao
+                  automatica de trechos, fila priorizada por plano e saidas para
+                  acompanhar no dashboard.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3 text-sm text-white/68">
+                    Melhor para clipes automaticos, podcast em cortes e social em volume.
+                  </div>
+                  <div className="rounded-2xl border border-white/8 bg-black/20 p-3 text-sm text-white/68">
+                    Resultados aparecem no dashboard conforme o worker finaliza cada job.
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
             {supportsAutoCaptions ? (
               <div className="space-y-3 rounded-2xl border border-secondary/20 bg-secondary/10 p-4">
                 <p className="text-sm uppercase tracking-[0.2em] text-secondary">
@@ -1200,9 +1367,9 @@ export function UploadPanel({ tool }: UploadPanelProps) {
               </div>
             ) : null}
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className={`grid gap-3 ${supportsServerPremium ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
               <Button
-                disabled={isProcessing || isSyncing}
+                disabled={isProcessing || isSyncing || isQueueingPremium}
                 onClick={handlePrimaryAction}
               >
                 {isProcessing ? (
@@ -1218,8 +1385,31 @@ export function UploadPanel({ tool }: UploadPanelProps) {
                   "Iniciar processamento"
                 )}
               </Button>
+              {supportsServerPremium ? (
+                <Button
+                  disabled={isProcessing || isSyncing || isQueueingPremium}
+                  onClick={() => {
+                    if (!selectedFile) {
+                      fileInputRef.current?.click();
+                      return;
+                    }
+
+                    void queuePremiumServerJob();
+                  }}
+                  variant="secondary"
+                >
+                  {isQueueingPremium ? (
+                    <>
+                      <LoaderCircle className="h-4 w-4 animate-spin" />
+                      Enviando
+                    </>
+                  ) : (
+                    getPremiumQueueSettings(tool.slug, preset).label
+                  )}
+                </Button>
+              ) : null}
               <Button
-                disabled={isSyncing}
+                disabled={isSyncing || isQueueingPremium}
                 onClick={() => {
                   void persistPreset();
                 }}

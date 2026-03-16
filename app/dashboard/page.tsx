@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { getOptionalUser } from "@/lib/supabase/auth";
 
 import { BillingSummaryPanel } from "@/components/dashboard/billing-summary";
+import { PremiumJobs } from "@/components/dashboard/premium-jobs";
 import { ProjectList } from "@/components/dashboard/project-list";
 import { RecentAssets } from "@/components/dashboard/recent-assets";
 import { UpgradeBanner } from "@/components/dashboard/upgrade-banner";
@@ -92,6 +93,7 @@ export default async function DashboardPage() {
 
       <UsageOverview snapshot={snapshot} />
       <UpgradeBanner snapshot={snapshot} />
+      <PremiumJobs snapshot={snapshot} />
       <RecentAssets snapshot={snapshot} />
       <ProjectList snapshot={snapshot} />
       <BillingSummaryPanel summary={billingSummary} />

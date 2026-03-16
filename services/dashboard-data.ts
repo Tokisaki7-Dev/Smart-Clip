@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { billingSnapshot } from "@/services/billing";
 import { dashboardSnapshot } from "@/services/dashboard";
+import { getToolBySlug } from "@/services/tools";
 import type { BillingSummary, DashboardSnapshot, PlanId } from "@/types";
 
 const planLimits: Record<
@@ -130,6 +131,7 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
     filesResult,
     exportsResult,
     projectsResult,
+    processingJobsResult,
     dailyExportsCountResult,
     autoClipCountResult,
     captionCountResult,
@@ -169,7 +171,7 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
       .limit(3),
     supabase
       .from("exports")
-      .select("storage_path, output_format, resolution, created_at")
+      .select("id, tool_slug, storage_path, output_format, resolution, status, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(3),
@@ -179,6 +181,12 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false })
       .limit(2),
+    supabase
+      .from("processing_jobs")
+      .select("id, type, status, created_at, output, input")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(4),
     supabase
       .from("exports")
       .select("id", { count: "exact", head: true })
@@ -232,10 +240,13 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
 
   const recentExports =
     exportsResult.data?.map((item) => ({
+      id: item.id,
       name: item.storage_path.split("/").pop() || item.storage_path,
       format: item.output_format,
       resolution: item.resolution,
-      finishedAt: formatDateLabel(item.created_at)
+      status: String(item.status || "completed"),
+      finishedAt: formatDateLabel(item.created_at),
+      toolSlug: item.tool_slug
     })) || dashboardSnapshot.recentExports;
 
   const recentProjects =
@@ -244,6 +255,37 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
       tool: project.tool_slug,
       lastEdited: formatDateLabel(project.updated_at)
     })) || dashboardSnapshot.recentProjects;
+
+  const processingJobs =
+    processingJobsResult.data?.map((job) => {
+      const rawOutputs = Array.isArray((job.output as { clips?: unknown[] } | null)?.clips)
+        ? (((job.output as { clips?: Array<Record<string, unknown>> })?.clips || []) as Array<
+            Record<string, unknown>
+          >)
+        : [];
+
+      return {
+        id: job.id,
+        tool:
+          getToolBySlug(
+            String((job.input as { toolSlug?: string } | null)?.toolSlug || "")
+          )?.title || String((job.input as { toolSlug?: string } | null)?.toolSlug || job.type),
+        status: String(job.status),
+        createdAt: formatDateLabel(job.created_at),
+        modeLabel:
+          job.type === "auto_caption"
+            ? "Legenda automatica"
+            : job.type === "auto_clip"
+              ? "Worker premium"
+              : "Processamento",
+        outputs: rawOutputs.map((clip, index) => ({
+          id: String(clip.exportId || `${job.id}-${index}`),
+          label: String(clip.label || `Clip ${index + 1}`),
+          resolution: String(clip.resolution || "1080p"),
+          status: String(clip.status || "completed")
+        }))
+      };
+    }) || dashboardSnapshot.processingJobs;
 
   return {
     userName:
@@ -283,7 +325,8 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
         : "Seus proximos uploads aparecerao aqui com o tempo restante ate expirar.",
     recentFiles,
     recentExports,
-    recentProjects
+    recentProjects,
+    processingJobs
   };
 }
 

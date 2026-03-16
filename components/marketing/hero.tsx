@@ -6,16 +6,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getFeaturedTools } from "@/services/tools";
 
 const heroStats = [
-  { label: "Rotas de alta intencao", value: "15+" },
+  { label: "Rotas de alta intencao", value: "18+" },
   { label: "Fluxos com uso imediato", value: "100%" },
-  { label: "Presets sociais prontos", value: "10+" }
+  { label: "Presets sociais prontos", value: "14+" }
 ];
 
 const heroPromises = [
   "Gerar clip 1080p com legenda automatica para redes sociais",
+  "Transformar um video longo em varios clipes automaticos",
   "Transformar qualquer video em clipe viral curto",
-  "Verticalizar videos horizontais com fundo blur",
-  "Gerar teaser curto para lancamentos e vendas"
+  "Verticalizar videos horizontais com fundo blur"
 ];
 
 export function Hero() {
@@ -40,8 +40,8 @@ export function Hero() {
             <p className="max-w-2xl text-lg leading-8 text-white/68">
               O SmartClip agora combina ferramentas de alto apelo organico,
               presets inteligentes, legenda automatica no navegador e um fluxo
-              muito mais bonito para cortar, verticalizar, resumir, comprimir e
-              publicar sem friccao.
+              muito mais bonito para cortar, verticalizar, gerar varios clipes,
+              resumir, comprimir e publicar sem friccao.
             </p>
           </div>
 
