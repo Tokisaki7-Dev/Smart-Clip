@@ -31,7 +31,7 @@ export function BillingActions({
   const [checkoutEmail, setCheckoutEmail] = useState(initialEmail);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("credit_card");
   const [statusMessage, setStatusMessage] = useState(
-    "Escolha a forma de pagamento para iniciar checkout ou comprar creditos."
+    "Escolha a forma de pagamento para abrir o checkout da InfinitePay ou comprar creditos."
   );
   const [isSubmittingCheckout, startCheckoutTransition] = useTransition();
   const [isCancelling, startCancelTransition] = useTransition();
@@ -85,14 +85,14 @@ export function BillingActions({
         }
 
         if (data.session?.redirectUrl) {
-          setStatusMessage("Checkout criado. Redirecionando para o PagBank...");
+          setStatusMessage("Checkout criado. Redirecionando para a InfinitePay...");
           window.location.href = data.session.redirectUrl;
           return;
         }
 
         setStatusMessage(
           data.session?.message ||
-            "Checkout criado, mas sem link do PagBank. Revise a configuracao do provedor."
+            "Checkout criado, mas sem link da InfinitePay. Revise a configuracao do provedor."
         );
       } catch (error) {
         setStatusMessage(

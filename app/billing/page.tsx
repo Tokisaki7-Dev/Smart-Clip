@@ -11,7 +11,7 @@ import { automationPacks, paymentMethods } from "@/services/billing";
 export const metadata = createMetadata({
   title: "Billing",
   description:
-    "Base de billing com trial, cancelamento pelo painel, creditos avulsos e metodos de pagamento do PagBank.",
+    "Base de billing com checkout da InfinitePay, plano mensal, creditos avulsos e ativacao automatica no Supabase.",
   path: "/billing"
 });
 
@@ -23,7 +23,7 @@ export default async function BillingPage() {
       <SectionHeading
         eyebrow="Billing"
         title="Assinaturas, trial de 30 dias e creditos avulsos no mesmo fluxo"
-        description="A integracao foi preparada para PagBank com checkout transparente, metodos locais e webhooks para manter assinatura, tentativas e creditos sincronizados."
+        description="A integracao usa checkout da InfinitePay com retorno ao site, webhooks e ativacao automatica do plano assim que o pagamento for confirmado."
       />
 
       <div className="grid gap-4 lg:grid-cols-[1fr,0.85fr]">
@@ -41,9 +41,9 @@ export default async function BillingPage() {
               ))}
             </div>
             <p className="text-sm leading-7 text-muted-foreground">
-              O Starter contem trial de 30 dias com cartao obrigatorio e
-              cancelamento self-service. Creator e Pro seguem a mesma base com
-              upgrades e downgrades preparados para o painel.
+              O Starter continua com trial promocional de 30 dias no produto,
+              enquanto Creator e Pro seguem a mesma estrutura de ativacao. A
+              compra volta para o billing e atualiza a conta no Supabase.
             </p>
             <div className="rounded-[1.25rem] border border-primary/20 bg-primary/5 p-4 text-sm leading-7 text-white/80">
               <p>Plano atual: {billingSummary.currentPlan}</p>

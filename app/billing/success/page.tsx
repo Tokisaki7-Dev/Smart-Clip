@@ -4,7 +4,7 @@ import { CheckCircle2, Clock3 } from "lucide-react";
 
 import { createMetadata } from "@/lib/metadata";
 import { isSupabaseAdminConfigured, isSupabaseConfigured } from "@/lib/env";
-import { syncPagBankState } from "@/lib/pagbank-sync";
+import { syncInfinitePayState } from "@/lib/infinitepay-sync";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -16,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 export const metadata = createMetadata({
   title: "Pagamento em analise",
   description:
-    "Acompanhe a confirmacao do checkout e veja quando sua assinatura ou seus creditos forem liberados.",
+    "Acompanhe a confirmacao do checkout da InfinitePay e veja quando sua assinatura ou seus creditos forem liberados.",
   path: "/billing/success"
 });
 
@@ -68,9 +68,20 @@ export default async function BillingSuccessPage({
   searchParams: Promise<{
     attempt?: string;
     plan?: string;
+    order_nsu?: string;
+    transaction_nsu?: string;
+    slug?: string;
+    receipt_url?: string;
+    capture_method?: string;
   }>;
 }) {
-  const { attempt: attemptId } = await searchParams;
+  const {
+    attempt: attemptIdFromQuery,
+    order_nsu: orderNsu,
+    transaction_nsu: transactionNsu,
+    slug
+  } = await searchParams;
+  const attemptId = attemptIdFromQuery || orderNsu;
   let snapshot = await getAttemptSnapshot(attemptId);
 
   if (
@@ -87,10 +98,12 @@ export default async function BillingSuccessPage({
 
       if (user) {
         const admin = createSupabaseAdminClient();
-        await syncPagBankState({
+        await syncInfinitePayState({
           admin,
-          attemptId,
-          fallbackUserId: user.id
+          attemptId: attemptId,
+          orderNsu: orderNsu || attemptId,
+          transactionNsu,
+          slug
         });
         snapshot = await getAttemptSnapshot(attemptId);
       }
@@ -122,7 +135,7 @@ export default async function BillingSuccessPage({
         </h1>
         <p className="text-base leading-8 text-white/68">
           {isPaid
-            ? "Assim que o webhook do PagBank confirmou o pagamento, o SmartClip atualizou sua conta e liberou o novo nivel de acesso."
+            ? "Assim que a InfinitePay confirmou o pagamento, o SmartClip atualizou sua conta e liberou o novo nivel de acesso."
             : "Alguns meios de pagamento podem levar alguns minutos. Se voce acabou de pagar, atualize esta pagina ou abra o billing novamente para ver o status mais recente."}
         </p>
       </div>

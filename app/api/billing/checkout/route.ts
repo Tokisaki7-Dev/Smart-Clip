@@ -3,9 +3,9 @@ import { ZodError } from "zod";
 
 import { isSupabaseConfigured } from "@/lib/env";
 import {
-  createPagBankCheckoutSession,
+  createInfinitePayCheckoutSession,
   parseCheckoutPayload
-} from "@/lib/pagbank";
+} from "@/lib/infinitepay";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPackById } from "@/services/credits";
 import { plans } from "@/services/plans";
@@ -62,6 +62,7 @@ export async function POST(request: Request) {
           .insert({
             user_id: userId,
             credit_pack_id: payload.creditPackId || null,
+            provider: "manual",
             payment_method: payload.paymentMethod,
             amount_cents: amountCents,
             status: "pending",
@@ -85,7 +86,7 @@ export async function POST(request: Request) {
     }
 
     const referenceId = ["smartclip", userId || "guest", payload.planId, paymentAttemptId].join(":");
-    const session = await createPagBankCheckoutSession({
+    const session = await createInfinitePayCheckoutSession({
       ...payload,
       customerEmail,
       amountCents,
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
       const updateResult = await supabase
         .from("payment_attempts")
         .update({
+          provider: "manual",
           provider_payment_id: session.checkoutId || null,
           raw_payload: {
             ...payload,

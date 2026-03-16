@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       <SectionHeading
         eyebrow="Privacidade"
         title="Como dados, uploads e eventos de pagamento sao tratados"
-        description="Texto base para orientar coleta, processamento, retencao e seguranca no ecossistema SmartClip com Supabase e PagBank."
+        description="Texto base para orientar coleta, processamento, retencao e seguranca no ecossistema SmartClip com Supabase e InfinitePay."
       />
       <Card className="border-white/8 bg-white/[0.03]">
         <CardContent className="space-y-4 p-8 text-sm leading-8 text-muted-foreground">
