@@ -16,7 +16,7 @@ export function UpgradeBanner({ snapshot }: UpgradeBannerProps) {
     snapshot.currentPlan === "pro";
 
   return (
-    <Card className="border-primary/25 bg-gradient-to-r from-primary/10 via-[#8A5CFF]/10 to-transparent shadow-glow">
+    <Card className="border-primary/25 bg-[radial-gradient(circle_at_left,rgba(34,224,255,0.14),transparent_28%),linear-gradient(90deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] shadow-glow">
       <CardContent className="flex flex-col gap-5 p-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-primary">

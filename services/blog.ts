@@ -4,11 +4,55 @@ export const blogCategories = [
   "Ferramentas",
   "Redes Sociais",
   "Automacao",
+  "Clipes Virais",
   "Formatos",
   "Conversao"
 ];
 
 export const blogPosts: BlogPost[] = [
+  {
+    slug: "como-transformar-video-longo-em-clipe-curto-viral",
+    title: "Como transformar um video longo em clipe curto com mais chance de retenção",
+    excerpt:
+      "Um fluxo para sair de um video longo, cortar mais rapido e publicar algo mais pronto para TikTok, Shorts e Reels.",
+    description:
+      "Veja como transformar videos longos em clipes curtos, usar framing vertical e publicar formatos mais fortes para descoberta.",
+    category: "Clipes Virais",
+    publishedAt: "15 mar 2026",
+    readingTime: "7 min",
+    keywords: [
+      "transformar video em clipe viral",
+      "video curto para tiktok",
+      "clipe curto para reels",
+      "cortar video automaticamente"
+    ],
+    sections: [
+      {
+        heading: "Comece pensando no trecho que segura atencao",
+        paragraphs: [
+          "Boa parte dos videos longos perde força por carregar muito contexto antes de chegar no ponto principal. Um bom fluxo de clipe curto ajuda a comprimir a narrativa sem depender de um editor pesado.",
+          "No SmartClip, a ideia e combinar corte mais direto, framing vertical e saida pronta para redes com muito menos atrito."
+        ]
+      },
+      {
+        heading: "O que aumenta valor para quem quer publicar mais",
+        paragraphs: [
+          "Quando o produto oferece uma ferramenta clara para virar clipe viral, o usuario entende o ganho mais rapido. E quando consegue repetir o mesmo preset, a chance de retorno cresce junto.",
+          "Por isso novas rotas como clip viral, trailer curto e horizontal para vertical ajudam tanto em trafego quanto em recorrencia."
+        ],
+        bullets: [
+          "Use clip viral 30s para discovery mais agressiva",
+          "Aplique fundo blur em videos horizontais reaproveitados",
+          "Salve o preset para repetir o fluxo sem recomecar"
+        ]
+      }
+    ],
+    relatedTools: [
+      "video-para-clipe-viral",
+      "cortar-video-automaticamente",
+      "video-horizontal-para-vertical"
+    ]
+  },
   {
     slug: "como-cortar-video-online-sem-complicar",
     title: "Como cortar video online sem complicar e sem perder ritmo",

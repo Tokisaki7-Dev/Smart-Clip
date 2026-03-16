@@ -41,8 +41,8 @@ const config: Config = {
         "2xl": "1.75rem"
       },
       boxShadow: {
-        glow: "0 0 0 1px rgba(90, 121, 255, 0.25), 0 18px 48px rgba(8, 13, 34, 0.45)",
-        soft: "0 20px 60px rgba(4, 6, 18, 0.4)"
+        glow: "0 0 0 1px rgba(34, 224, 255, 0.12), 0 28px 80px rgba(4, 8, 20, 0.5)",
+        soft: "0 28px 80px rgba(0, 0, 0, 0.28)"
       },
       fontFamily: {
         display: ["var(--font-display)", "sans-serif"],

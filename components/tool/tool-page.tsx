@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles, Target, Zap } from "lucide-react";
 
 import type { ToolDefinition } from "@/types";
 
@@ -20,28 +20,52 @@ export function ToolPage({ tool }: ToolPageProps) {
   const relatedTools = getRelatedTools(tool.slug);
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-20">
       <section className="container py-12">
-        <div className="grid gap-8 lg:grid-cols-[0.9fr,1.1fr]">
+        <div className="grid gap-8 xl:grid-cols-[0.88fr,1.12fr]">
           <div className="space-y-6">
-            <Badge variant="primary">{tool.kicker}</Badge>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="primary">{tool.kicker}</Badge>
+              <Badge variant="secondary">{tool.category}</Badge>
+              <Badge variant="secondary">{tool.attentionLabel}</Badge>
+            </div>
+
             <div className="space-y-4">
-              <h1 className="font-display text-4xl leading-tight text-white sm:text-5xl">
+              <h1 className="font-display text-5xl leading-[0.95] text-white sm:text-6xl">
                 {tool.title}
               </h1>
-              <p className="text-lg leading-8 text-muted-foreground">
+              <p className="max-w-2xl text-lg leading-8 text-white/68">
                 {tool.longDescription}
               </p>
+            </div>
+
+            <div className="rounded-[1.8rem] border border-white/10 bg-white/[0.04] p-5">
+              <div className="flex items-center gap-3 text-primary">
+                <Target className="h-4 w-4" />
+                <span className="text-xs uppercase tracking-[0.24em]">
+                  Promessa da ferramenta
+                </span>
+              </div>
+              <p className="mt-4 text-sm leading-7 text-white/72">{tool.promise}</p>
+              <p className="mt-3 text-sm leading-7 text-white/52">{tool.audience}</p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               {tool.useCases.map((item) => (
                 <div
-                  className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-white/82"
+                  className="rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-4 text-sm text-white/80"
                   key={item}
                 >
                   {item}
                 </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {tool.platforms.map((platform) => (
+                <span className="metric-chip" key={platform}>
+                  {platform}
+                </span>
               ))}
             </div>
 
@@ -60,27 +84,44 @@ export function ToolPage({ tool }: ToolPageProps) {
       </section>
 
       <section className="container">
-        <SectionHeading
-          eyebrow="Saidas e SEO"
-          title="Presets sociais, conversao contextual e links internos"
-          description="Essas paginas sao desenhadas para ranquear bem, demonstrar o uso da ferramenta e levar o usuario direto para o fluxo de upload."
-        />
+        <div className="grid gap-4 lg:grid-cols-[0.9fr,1.1fr]">
+          <Card className="border-white/10 bg-white/[0.04]">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex items-center gap-3 text-primary">
+                <Sparkles className="h-4 w-4" />
+                <span className="text-xs uppercase tracking-[0.24em]">
+                  Porque essa rota chama atencao
+                </span>
+              </div>
+              <h2 className="font-display text-3xl text-white">
+                Ferramenta com valor rapido e discurso facil de entender
+              </h2>
+              <p className="text-sm leading-7 text-white/68">
+                Quanto mais clara a promessa, maior a chance de clique, uso
+                imediato e retorno. Por isso a pagina combina copy comercial,
+                upload visivel e CTA forte no topo.
+              </p>
+            </CardContent>
+          </Card>
 
-        <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {tool.supportedOutputs.map((output) => (
-            <Card className="border-white/8 bg-white/[0.03]" key={output}>
-              <CardContent className="p-5">
-                <p className="text-sm text-muted-foreground">Formato suportado</p>
-                <p className="mt-2 font-display text-2xl text-white">{output}</p>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="grid gap-4 md:grid-cols-2">
+            {tool.supportedOutputs.map((output) => (
+              <Card className="border-white/10 bg-white/[0.03]" key={output}>
+                <CardContent className="space-y-3 p-5">
+                  <p className="text-xs uppercase tracking-[0.22em] text-white/42">
+                    Saida suportada
+                  </p>
+                  <p className="font-display text-2xl text-white">{output}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
       <section className="container">
         <AdsenseSlot
-          className="max-w-4xl"
+          className="max-w-5xl"
           label="Pagina de ferramenta abaixo do resultado"
           slotKey="toolResult"
         />
@@ -89,17 +130,24 @@ export function ToolPage({ tool }: ToolPageProps) {
       <section className="container">
         <SectionHeading
           eyebrow="Ferramentas relacionadas"
-          title="Links internos para manter o usuario dentro do ecossistema"
-          description="Cada pagina de ferramenta puxa a proxima acao natural do usuario, fortalecendo o cluster SEO e a recorrencia do produto."
+          title="Quem entrou por uma dor pode sair com um fluxo inteiro pronto"
+          description="As rotas se conectam para aumentar paginas por sessao, profundidade de uso e oportunidade de upgrade sem parecer forçado."
         />
 
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
           {relatedTools.map((relatedTool) => (
-            <Card className="border-white/8 bg-white/[0.03]" key={relatedTool.slug}>
+            <Card className="border-white/10 bg-white/[0.035]" key={relatedTool.slug}>
               <CardContent className="space-y-4 p-6">
-                <p className="text-sm text-primary">{relatedTool.kicker}</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-[0.22em] text-primary/85">
+                    {relatedTool.kicker}
+                  </p>
+                  {relatedTool.featured ? (
+                    <Zap className="h-4 w-4 text-secondary" />
+                  ) : null}
+                </div>
                 <h3 className="font-display text-2xl text-white">{relatedTool.title}</h3>
-                <p className="text-sm leading-7 text-muted-foreground">
+                <p className="text-sm leading-7 text-white/65">
                   {relatedTool.shortDescription}
                 </p>
                 <Button asChild className="justify-between" variant="secondary">
@@ -116,12 +164,12 @@ export function ToolPage({ tool }: ToolPageProps) {
 
       <section className="container pb-16">
         <CtaStrip
-          description="O plano gratis mostra valor com limites claros. Quando o fluxo fica recorrente, o upgrade para Starter ou Creator acontece sem estranheza."
+          description="Use a ferramenta agora, valide o formato e suba de plano quando automacao, 1080p ou sem marca d'agua deixarem de ser extra e virarem rotina."
           primaryHref="/signup"
           primaryLabel="Testar gratis"
           secondaryHref="/pricing"
           secondaryLabel="Ver comparacao de planos"
-          title="Use esta ferramenta agora e leve o trabalho pesado para o SmartClip"
+          title="O foco aqui e deixar o primeiro resultado muito facil de conseguir"
         />
       </section>
     </div>

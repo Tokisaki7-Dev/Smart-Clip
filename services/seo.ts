@@ -2,6 +2,37 @@ import type { SeoCluster } from "@/types";
 
 export const seoClusters: SeoCluster[] = [
   {
+    slug: "clipes-virais",
+    title: "Cluster SEO: clipes virais, trailers curtos e cortes automaticos",
+    description:
+      "Cluster focado em transformar videos longos em formatos curtos com alto apelo para redes sociais e descoberta.",
+    intent: "Atrair usuarios que querem mais alcance, mais retenção e menos tempo editando manualmente.",
+    keywords: [
+      "transformar video em clipe viral",
+      "cortar video automaticamente",
+      "criar trailer curto",
+      "video curto para tiktok"
+    ],
+    relatedRoutes: [
+      "/video-para-clipe-viral",
+      "/cortar-video-automaticamente",
+      "/criar-trailer-curto",
+      "/video-horizontal-para-vertical"
+    ],
+    faqs: [
+      {
+        question: "O SmartClip consegue encurtar videos automaticamente?",
+        answer:
+          "Sim. As novas rotas usam presets inteligentes para cortar, condensar e deixar o arquivo mais pronto para formatos curtos."
+      },
+      {
+        question: "Posso transformar um video horizontal em algo pronto para TikTok?",
+        answer:
+          "Sim. A ferramenta de horizontal para vertical centraliza o quadro e gera saidas 9:16 pensadas para descoberta."
+      }
+    ]
+  },
+  {
     slug: "cortar-video",
     title: "Cluster SEO: cortar video online",
     description:
@@ -69,7 +100,8 @@ export const seoClusters: SeoCluster[] = [
       "/video-para-reels",
       "/video-para-shorts",
       "/video-para-tiktok",
-      "/video-para-stories"
+      "/video-para-stories",
+      "/video-horizontal-para-vertical"
     ],
     faqs: [
       {

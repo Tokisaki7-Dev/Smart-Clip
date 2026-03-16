@@ -12,10 +12,10 @@ import {
   getDefaultOutputFormat,
   getDefaultPresetForTool,
   getFormatOptions,
+  getPresetOptions,
   isAudioOnlyTool,
   type OutputFormat,
-  type QualityMode,
-  videoPresetOptions
+  type QualityMode
 } from "@/lib/tool-processing";
 import { type ToolDefinition, type ToolSlug } from "@/types";
 
@@ -94,7 +94,18 @@ function getResolutionLabel(toolSlug: ToolSlug, preset: string, outputFormat: Ou
     return "audio";
   }
 
-  if (preset === "Reels 1080x1920" || preset === "Shorts 1080x1920") {
+  if (
+    preset === "Reels 1080x1920" ||
+    preset === "Shorts 1080x1920" ||
+    preset === "Vertical com blur" ||
+    preset === "Vertical com crop central" ||
+    preset === "Clip viral 30s" ||
+    preset === "Clip viral 45s" ||
+    preset === "UGC 20s" ||
+    preset === "Podcast 59s" ||
+    toolSlug === "video-para-clipe-viral" ||
+    toolSlug === "video-horizontal-para-vertical"
+  ) {
     return "1080x1920";
   }
 
@@ -151,6 +162,12 @@ export function UploadPanel({ tool }: UploadPanelProps) {
   const loadedCallbacksRef = useRef(false);
   const isAudioTool = isAudioOnlyTool(tool.slug);
   const formatOptions = useMemo(() => getFormatOptions(tool.slug), [tool.slug]);
+  const presetOptions = useMemo(() => getPresetOptions(tool.slug), [tool.slug]);
+  const isSmartTool =
+    tool.slug === "video-para-clipe-viral" ||
+    tool.slug === "cortar-video-automaticamente" ||
+    tool.slug === "video-horizontal-para-vertical" ||
+    tool.slug === "criar-trailer-curto";
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("Nenhum arquivo selecionado");
@@ -546,7 +563,8 @@ export function UploadPanel({ tool }: UploadPanelProps) {
         qualityMode,
         preset,
         trimStart,
-        trimEnd: duration > 0 ? trimEnd : 0
+        trimEnd: duration > 0 ? trimEnd : 0,
+        duration
       });
 
       try {
@@ -624,12 +642,12 @@ export function UploadPanel({ tool }: UploadPanelProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.24em] text-primary">
-              Fluxo utilizavel no navegador
+              {tool.attentionLabel}
             </p>
             <h2 className="mt-2 font-display text-2xl text-white">{tool.title}</h2>
           </div>
-          <div className="rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm text-white/75">
-            {tool.retentionPrompt}
+          <div className="rounded-[1.25rem] border border-white/10 bg-white/6 px-4 py-3 text-sm text-white/75">
+            {tool.promise}
           </div>
         </div>
 
@@ -649,6 +667,9 @@ export function UploadPanel({ tool }: UploadPanelProps) {
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             O processamento roda no proprio navegador para liberar uso imediato.
+            {isSmartTool
+              ? " Esta ferramenta aplica um fluxo mais inteligente para deixar o resultado mais pronto para publicar."
+              : ""}
           </p>
         </label>
 
@@ -660,6 +681,16 @@ export function UploadPanel({ tool }: UploadPanelProps) {
             </div>
             <p className="font-medium text-white">{fileName}</p>
             <Progress value={progress} />
+            <div className="flex flex-wrap gap-2">
+              {tool.platforms.map((platform) => (
+                <span
+                  className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/55"
+                  key={platform}
+                >
+                  {platform}
+                </span>
+              ))}
+            </div>
             {(videoWidth || videoHeight) && !isAudioTool ? (
               <p className="text-xs uppercase tracking-[0.16em] text-white/45">
                 Resolucao de origem: {videoWidth} x {videoHeight}
@@ -717,7 +748,7 @@ export function UploadPanel({ tool }: UploadPanelProps) {
                   onChange={(event) => setPreset(event.target.value)}
                   value={preset}
                 >
-                  {videoPresetOptions.map((option) => (
+                  {presetOptions.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>
@@ -762,8 +793,7 @@ export function UploadPanel({ tool }: UploadPanelProps) {
                 <span className="text-sm uppercase tracking-[0.2em]">Retencao</span>
               </div>
               <p className="mt-3 text-sm leading-7 text-white/80">
-                Salve o preset localmente para repetir o mesmo fluxo no proximo
-                arquivo sem reconfigurar tudo.
+                {tool.retentionPrompt}
               </p>
             </div>
 

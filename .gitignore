@@ -12,3 +12,5 @@ out
 .env.test.local
 .env.production.local
 generated
+.npm-vercel-cache
+adsense-*.html

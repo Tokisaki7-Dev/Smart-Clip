@@ -1,6 +1,10 @@
 export type PlanId = "free" | "starter" | "creator" | "pro";
 
 export type ToolSlug =
+  | "video-para-clipe-viral"
+  | "cortar-video-automaticamente"
+  | "video-horizontal-para-vertical"
+  | "criar-trailer-curto"
   | "cortar-video"
   | "extrair-audio"
   | "comprimir-video"
@@ -47,6 +51,8 @@ export interface ToolDefinition {
   slug: ToolSlug;
   title: string;
   kicker: string;
+  category: string;
+  attentionLabel: string;
   shortDescription: string;
   longDescription: string;
   seoTitle: string;
@@ -54,6 +60,10 @@ export interface ToolDefinition {
   supportedOutputs: string[];
   useCases: string[];
   retentionPrompt: string;
+  audience: string;
+  promise: string;
+  platforms: string[];
+  featured?: boolean;
 }
 
 export interface BlogSection {

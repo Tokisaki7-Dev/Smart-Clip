@@ -37,7 +37,7 @@ export default async function DashboardPage() {
   return (
     <PageShell className="space-y-8">
       <div className="grid gap-6 lg:grid-cols-[1fr,320px]">
-        <Card className="border-white/8 bg-gradient-to-r from-white/[0.05] to-white/[0.02]">
+        <Card className="border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(34,224,255,0.15),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))]">
           <CardContent className="space-y-5 p-6 lg:p-8">
             <Badge variant="primary">Dashboard de retencao</Badge>
             <div className="space-y-3">
@@ -50,10 +50,26 @@ export default async function DashboardPage() {
                 quando o valor premium fizer sentido.
               </p>
             </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="metric-chip">Projeto mais recente visivel</span>
+              <span className="metric-chip">
+                {snapshot.currentPlan === "free"
+                  ? `${snapshot.fullHdRemaining} exportacoes 1080p restantes`
+                  : "1080p liberado"}
+              </span>
+              <span className="metric-chip">
+                {snapshot.currentPlan === "pro"
+                  ? "Automacoes ilimitadas"
+                  : `${Math.max(
+                      0,
+                      snapshot.monthlyAutoClipsLimit - snapshot.monthlyAutoClipsUsed
+                    )} automacoes restantes`}
+              </span>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="border-primary/20 bg-[#081227]/90 shadow-glow">
+        <Card className="border-white/10 bg-white/[0.045] shadow-glow">
           <CardContent className="space-y-4 p-6">
             <p className="text-sm uppercase tracking-[0.24em] text-primary">Seu plano</p>
             <h2 className="font-display text-3xl text-white">

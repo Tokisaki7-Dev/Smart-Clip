@@ -7,5 +7,5 @@ interface PageShellProps extends PropsWithChildren {
 }
 
 export function PageShell({ className, children }: PageShellProps) {
-  return <div className={cn("container py-12 lg:py-16", className)}>{children}</div>;
+  return <div className={cn("container py-14 lg:py-20", className)}>{children}</div>;
 }

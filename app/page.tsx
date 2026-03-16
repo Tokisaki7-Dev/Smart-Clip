@@ -17,13 +17,14 @@ import { SectionHeading } from "@/components/layout/section-heading";
 export const metadata = createMetadata({
   title: "SmartClip",
   description:
-    "Crie clips prontos, legendas automaticas e formatos sociais com uma base SaaS premium pronta para Vercel e Supabase.",
+    "Transforme videos longos em clipes virais, trailers curtos e formatos sociais com um fluxo premium, rapido e pronto para TikTok, Shorts, Reels e Stories.",
   path: "/",
   keywords: [
     "cortar video online",
     "legenda automatica",
     "video para reels",
-    "compressao de video"
+    "compressao de video",
+    "transformar video em clipe viral"
   ]
 });
 
@@ -57,8 +58,8 @@ export default function HomePage() {
       <section className="container py-16">
         <SectionHeading
           eyebrow="Planos"
-          title="Uma escada de valor clara do gratis ate o uso pesado"
-          description="O Free retém, o Starter remove as primeiras barreiras, o Creator maximiza o lucro com melhor custo-beneficio e o Pro cobre operacao intensa."
+          title="Uma escada de valor mais clara para crescer do primeiro uso ate operacao intensa"
+          description="O Free agora impressiona mais, o Starter remove as primeiras travas, o Creator continua sendo o ponto de melhor margem e o Pro cobre volume pesado com prioridade maxima."
         />
         <div className="mt-10">
           <PricingGrid />

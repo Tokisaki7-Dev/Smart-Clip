@@ -1,59 +1,57 @@
-import { Bolt, History, Repeat, Save } from "lucide-react";
+import { Clock3, FolderClock, Repeat, Sparkles } from "lucide-react";
 
 import { SectionHeading } from "@/components/layout/section-heading";
 import { Card, CardContent } from "@/components/ui/card";
 
 const freeHighlights = [
   {
-    title: "Muito util no gratis",
+    title: "Gratis de verdade",
     description:
-      "18 exportacoes por dia, upload ate 800 MB, presets sociais e 1 projeto salvo deixam o plano free de verdade usavel.",
-    icon: Bolt
+      "O plano free continua util para gerar habito: upload generoso, exportacoes por dia, presets sociais e uma amostra clara dos recursos premium.",
+    icon: Sparkles
   },
   {
-    title: "Historico que traz o usuario de volta",
+    title: "Historico que puxa retorno",
     description:
-      "Arquivos recentes, tempo de expiracao e ultimas exportacoes incentivam retorno sem depender de empurrao agressivo.",
-    icon: History
+      "Arquivos recentes, projetos e repeticao de exportacao ajudam o usuario a voltar porque o caminho ja ficou montado.",
+    icon: FolderClock
   },
   {
-    title: "Repetir ultima exportacao",
+    title: "Menos friccao na volta",
     description:
-      "Uma das alavancas mais simples de retencao: menos decisao no proximo acesso, mais rapidez para publicar.",
+      "Presets e ultima configuracao reduzem decisao repetitiva. Isso aumenta retencao sem empurrar upgrade de forma agressiva.",
     icon: Repeat
   },
   {
-    title: "Projeto simples salvo",
+    title: "Limites visiveis e honestos",
     description:
-      "Mesmo o plano gratis consegue memorizar um fluxo util. Isso prova valor e puxa o upgrade certo quando a rotina cresce.",
-    icon: Save
+      "Saldo de 1080p, sem marca d'agua e automacoes aparece de forma clara para criar desejo de upgrade sem surpresa ruim.",
+    icon: Clock3
   }
 ];
 
 export function FreeValueSection() {
   return (
-    <section className="container py-16">
+    <section className="container py-20">
       <SectionHeading
-        eyebrow="Retencao do plano gratis"
-        title="O gratis precisa ser bom o bastante para virar habito"
-        description="O SmartClip mostra valor logo no primeiro uso, sem liberar tudo de uma vez. Assim o produto retém melhor e a conversao acontece na hora certa."
+        eyebrow="Valor no gratis"
+        title="O plano free foi mantido forte o bastante para criar habito, nao para virar amostra vazia"
+        description="Essa combinacao ajuda o SmartClip a atrair mais gente, reduzir abandono e converter no momento certo quando a rotina fica frequente."
       />
 
-      <div className="mt-10 grid gap-4 lg:grid-cols-2">
+      <div className="mt-12 grid gap-4 lg:grid-cols-2">
         {freeHighlights.map((item) => {
           const Icon = item.icon;
 
           return (
-            <Card className="border-white/8 bg-gradient-to-b from-white/[0.05] to-transparent" key={item.title}>
-              <CardContent className="flex gap-4 p-6">
-                <div className="rounded-2xl bg-white/6 p-3 text-primary">
-                  <Icon className="h-6 w-6" />
+            <Card className="border-white/10 bg-white/[0.035]" key={item.title}>
+              <CardContent className="flex gap-5 p-6">
+                <div className="rounded-[1.35rem] border border-white/10 bg-white/[0.05] p-3 text-primary">
+                  <Icon className="h-5 w-5" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="font-display text-xl text-white">{item.title}</h3>
-                  <p className="text-sm leading-7 text-muted-foreground">
-                    {item.description}
-                  </p>
+                <div className="space-y-3">
+                  <h3 className="font-display text-2xl text-white">{item.title}</h3>
+                  <p className="text-sm leading-7 text-white/65">{item.description}</p>
                 </div>
               </CardContent>
             </Card>

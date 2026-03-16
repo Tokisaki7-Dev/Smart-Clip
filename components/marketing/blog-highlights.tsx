@@ -9,16 +9,16 @@ export function BlogHighlights() {
   const featuredPosts = blogPosts.slice(0, 3);
 
   return (
-    <section className="container py-16">
+    <section className="container py-20">
       <SectionHeading
         eyebrow="SEO e blog"
-        title="Conteudo estruturado para puxar usuario da busca ate a ferramenta"
-        description="Clusters, links internos, schema markup e CTAs comerciais preparados para transformar trafego organico em uso recorrente."
+        title="Conteudo estrategico para puxar busca, distribuir a visita e empurrar para a ferramenta certa"
+        description="Novos clusters e artigos foram pensados para conectar trafego organico, dor imediata e fluxo pratico de uso dentro do produto."
       />
 
-      <div className="mt-10 grid gap-4 lg:grid-cols-3">
+      <div className="mt-12 grid gap-4 lg:grid-cols-3">
         {featuredPosts.map((post) => (
-          <Card className="border-white/8 bg-white/[0.03]" key={post.slug}>
+          <Card className="border-white/10 bg-white/[0.035]" key={post.slug}>
             <CardContent className="flex h-full flex-col gap-4 p-6">
               <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-primary/80">
                 <span>{post.category}</span>
@@ -26,7 +26,7 @@ export function BlogHighlights() {
               </div>
               <div className="space-y-3">
                 <h3 className="font-display text-2xl text-white">{post.title}</h3>
-                <p className="text-sm leading-7 text-muted-foreground">{post.excerpt}</p>
+                <p className="text-sm leading-7 text-white/64">{post.excerpt}</p>
               </div>
               <Link
                 className="mt-auto inline-flex items-center gap-2 text-sm font-medium text-white transition hover:text-primary"

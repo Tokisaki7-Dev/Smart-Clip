@@ -21,8 +21,8 @@ export default function PricingPage() {
       <PageShell className="space-y-12">
         <SectionHeading
           eyebrow="Pricing"
-          title="Clareza de limites, automacoes e ganho percebido"
-          description="Os planos foram montados para reter quem esta no gratis, converter quem sentiu valor e maximizar receita recorrente sem destruir a experiencia."
+          title="Planos pensados para reter no gratis, converter com clareza e aumentar lucro sem estragar a experiencia"
+          description="O redesenho do produto reforca o Creator como melhor custo-beneficio, mantem o Free forte e usa creditos avulsos para capturar quem nao quer assinatura recorrente."
         />
         <PricingGrid />
 

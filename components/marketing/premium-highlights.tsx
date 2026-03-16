@@ -7,55 +7,53 @@ const premiumHighlights = [
   {
     title: "Clipes automaticos",
     description:
-      "Mostre poucas geracoes gratis por mes e deixe claro como o Creator reduz custo por rotina recorrente.",
+      "Sao faceis de entender, vendem produtividade na hora e ajudam a puxar o usuario do gratis para planos que valem mais.",
     icon: Scissors
   },
   {
     title: "Legenda automatica",
     description:
-      "Recurso premium facil de entender, excelente para provar valor e elevar a percepcao de qualidade.",
+      "Aumenta valor percebido e melhora retenção dos clipes. Continua sendo um dos motores mais claros de conversao.",
     icon: Captions
   },
   {
     title: "Sem marca d'agua",
     description:
-      "Uma das travas mais naturais de conversao: o usuario sente valor quando o material precisa parecer pronto para entregar.",
+      "A trava premium aparece no ponto certo: quando o usuario sente que o video ficou bom o bastante para entregar ou anunciar.",
     icon: ShieldOff
   },
   {
     title: "1080p e 4K",
     description:
-      "A resolucao premium entra exatamente quando o video aprovado merece acabamento melhor, sem bloquear o teste inicial.",
+      "A qualidade maior vira argumento comercial sem impedir teste inicial. Isso preserva experiencia e aumenta margem.",
     icon: Video
   }
 ];
 
 export function PremiumHighlights() {
   return (
-    <section className="container py-16">
+    <section className="container py-20">
       <SectionHeading
-        eyebrow="Recursos premium centrais"
-        title="O upgrade faz sentido porque o ganho fica claro"
-        description="As features premium do SmartClip foram escolhidas para serem percebidas rapido, criar desejo de continuidade e preservar a experiencia do plano gratis."
+        eyebrow="Monetizacao inteligente"
+        title="Os recursos premium continuam claros, desejaveis e muito faceis de justificar"
+        description="O produto melhorou em usabilidade sem perder o desenho de lucro: provar valor no gratis e cobrar quando qualidade, recorrencia ou volume realmente pesam."
       />
 
-      <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {premiumHighlights.map((item) => {
           const Icon = item.icon;
 
           return (
-            <Card className="border-primary/15 bg-[#09112A]" key={item.title}>
+            <Card className="border-white/10 bg-[linear-gradient(180deg,rgba(34,224,255,0.08),rgba(255,255,255,0.02))]" key={item.title}>
               <CardContent className="space-y-4 p-6">
                 <div className="flex items-center justify-between">
-                  <div className="rounded-2xl bg-primary/12 p-3 text-primary">
+                  <div className="rounded-[1.25rem] border border-white/10 bg-white/[0.05] p-3 text-primary">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <Crown className="h-4 w-4 text-[#B89CFF]" />
+                  <Crown className="h-4 w-4 text-secondary" />
                 </div>
                 <h3 className="font-display text-xl text-white">{item.title}</h3>
-                <p className="text-sm leading-7 text-muted-foreground">
-                  {item.description}
-                </p>
+                <p className="text-sm leading-7 text-white/65">{item.description}</p>
               </CardContent>
             </Card>
           );

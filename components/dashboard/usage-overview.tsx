@@ -59,16 +59,18 @@ export function UsageOverview({ snapshot }: UsageOverviewProps) {
         const Icon = metric.icon;
 
         return (
-          <Card className="border-white/8 bg-white/[0.03]" key={metric.label}>
+          <Card className="border-white/10 bg-white/[0.04]" key={metric.label}>
             <CardContent className="space-y-4 p-6">
               <div className="flex items-center justify-between">
-                <div className="rounded-2xl bg-primary/12 p-3 text-primary">
+                <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.05] p-3 text-primary">
                   <Icon className="h-5 w-5" />
                 </div>
-                <span className="text-sm text-white/80">{metric.value}</span>
+                <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-sm text-white/76">
+                  {metric.value}
+                </span>
               </div>
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">{metric.label}</p>
+                <p className="text-sm text-white/58">{metric.label}</p>
                 <Progress value={metric.progress} />
               </div>
             </CardContent>

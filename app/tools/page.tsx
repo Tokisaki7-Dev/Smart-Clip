@@ -17,12 +17,12 @@ export default function ToolsPage() {
     <PageShell className="space-y-12">
       <SectionHeading
         eyebrow="Ferramentas"
-        title="Paginas comerciais de alta intencao para crescer com SEO e converter em uso"
-        description="Cada rota leva o usuario de uma dor bem definida para um fluxo de upload simples, com CTA contextual para recursos premium quando fizer sentido."
+        title="Ferramentas organizadas para atrair busca, resolver dores claras e puxar mais uso recorrente"
+        description="O catalogo agora mistura rotas evergreen, ferramentas de viralizacao, formatos sociais e conversoes de altissima utilidade. A ideia e simples: ser facil de usar, muito pratico e dificil de abandonar."
       />
       <ToolGrid />
       <CtaStrip
-        description="Use presets prontos para redes, exportacao controlada no gratis e sinais de upgrade elegantes quando o video estiver validado."
+        description="Comece em uma ferramenta, descubra outras rotas relacionadas e leve o melhor formato para cada plataforma sem recomecar do zero."
         primaryHref="/signup"
         primaryLabel="Testar ferramentas"
         secondaryHref="/pricing"
