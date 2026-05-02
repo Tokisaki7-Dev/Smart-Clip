@@ -14,3 +14,4 @@ out
 generated
 .npm-vercel-cache
 adsense-*.html
+.env*.local
