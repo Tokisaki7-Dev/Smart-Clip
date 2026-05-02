@@ -30,7 +30,19 @@ const config: Config = {
         "primary-foreground": "hsl(var(--primary-foreground))",
         secondary: "hsl(var(--secondary))",
         accent: "hsl(var(--accent))",
-        success: "hsl(var(--success))"
+        success: "hsl(var(--success))",
+        purple: {
+          400: "#a78bfa",
+          500: "#9333ea",
+          600: "#7e22ce",
+          700: "#6b21a8",
+          900: "#3f0f5c"
+        },
+        magenta: {
+          400: "#ec4899",
+          500: "#db2777",
+          600: "#be185d"
+        }
       },
       backgroundImage: {
         "hero-grid":
