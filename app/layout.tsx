@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -46,6 +47,7 @@ export default function RootLayout({
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
           strategy="beforeInteractive"
         />
+        <SpeedInsights />
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
