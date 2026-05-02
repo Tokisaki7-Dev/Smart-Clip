@@ -56,6 +56,9 @@ enum JobType {
   AUTO_CLIP
   AUTO_CAPTION
   EXPORT
+  CUT
+  SUBTITLES
+  ENHANCE
 }
 
 enum JobStatus {

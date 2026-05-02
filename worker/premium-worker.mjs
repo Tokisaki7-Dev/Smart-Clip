@@ -523,6 +523,102 @@ async function createExportRecord({
   return data.id;
 }
 
+async function processEnhanceJob(admin, job, video) {
+  const tempDir = await mkdtemp(path.join(tmpdir(), "smartclip-worker-"));
+  const localInput = path.join(tempDir, "input.mp4");
+  const localOutput = path.join(tempDir, "enhanced.mp4");
+
+  try {
+    // Download video
+    const { data: sourceBlob, error: sourceError } = await admin.storage
+      .from(video.storage_bucket)
+      .download(video.storage_path);
+    if (sourceError || !sourceBlob) {
+      throw new Error(sourceError?.message || "Could not download source video.");
+    }
+    const sourceBuffer = Buffer.from(await sourceBlob.arrayBuffer());
+    await writeFile(localInput, sourceBuffer);
+
+    // Get metadata
+    const metadata = await probeVideo(localInput);
+    const { applyUpscaling, sharpnessLevel, noiseReduction, contrastBoost } = job.metadata || {};
+
+    // Build FFmpeg filters
+    const filters = [];
+    if (sharpnessLevel > 0) filters.push(`unsharp=luma_msize_x=5:luma_msize_y=5:luma_amount=${sharpnessLevel}`);
+    if (noiseReduction) filters.push('hqdn3d');
+    if (contrastBoost > 0) filters.push(`eq=contrast=${1 + contrastBoost}:brightness=0.05`);
+    const vf = filters.join(',');
+
+    // Emit progress via Supabase Realtime
+    await emitProgress(admin, job.id, 10, "Iniciando processamento...");
+
+    // Apply FFmpeg filters
+    await runBinary("ffmpeg", [
+      "-i", "input.mp4",
+      "-vf", vf,
+      "-c:v", "libx264",
+      "-preset", "slow",
+      "-crf", "18",
+      "temp_filtered.mp4"
+    ], { cwd: tempDir });
+    await emitProgress(admin, job.id, 50, "Filtros aplicados...");
+
+    // Optional upscaling with Real-ESRGAN
+    if (applyUpscaling && metadata.duration < 300) { // Limit to 5min videos
+      const framesDir = path.join(tempDir, "frames");
+      const outputFramesDir = path.join(tempDir, "frames_upscaled");
+      await mkdtemp(framesDir);
+      await mkdtemp(outputFramesDir);
+
+      // Extract frames
+      await runBinary("ffmpeg", ["-i", "temp_filtered.mp4", "-vf", "fps=1", `${framesDir}/frame_%04d.png`], { cwd: tempDir });
+      await emitProgress(admin, job.id, 70, "Frames extraídos para upscaling...");
+
+      // Call Python script for Real-ESRGAN
+      const { PythonShell } = await import('python-shell');
+      await new Promise((resolve, reject) => {
+        PythonShell.run(path.join(workspaceRoot, 'worker', 'enhance-upscale.py'), {
+          args: [framesDir, outputFramesDir],
+          scriptPath: workspaceRoot
+        }, (err) => err ? reject(err) : resolve());
+      });
+      await emitProgress(admin, job.id, 90, "Upscaling concluído...");
+
+      // Recombine frames
+      await runBinary("ffmpeg", ["-i", `${outputFramesDir}/frame_%04d.png`, "-c:v", "libx264", "-pix_fmt", "yuv420p", "enhanced.mp4"], { cwd: tempDir });
+    } else {
+      await runBinary("ffmpeg", ["-i", "temp_filtered.mp4", "-c", "copy", "enhanced.mp4"], { cwd: tempDir });
+    }
+
+    // Upload result
+    const outputBuffer = await readFile(localOutput);
+    const storagePath = `enhanced/${job.id}_${Date.now()}.mp4`;
+    const { error: uploadError } = await admin.storage
+      .from(video.storage_bucket)
+      .upload(storagePath, outputBuffer, { contentType: "video/mp4" });
+    if (uploadError) throw uploadError;
+
+    // Create export record
+    await createExportRecord(admin, job, video, "mp4", storagePath, "1080p");
+    await emitProgress(admin, job.id, 100, "Processamento concluído!");
+
+    // Mark job as completed
+    await admin.from("processing_jobs").update({ status: "COMPLETED" }).eq("id", job.id);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+}
+
+async function emitProgress(admin, jobId, percent, message) {
+  // Use Supabase Realtime to emit progress
+  await admin.realtime.send({
+    type: 'broadcast',
+    event: 'progress',
+    payload: { jobId, percent, message }
+  });
+}
+
 async function processJob(admin, job) {
   if (!job.video_id) {
     throw new Error("Job does not reference a source video.");
@@ -536,6 +632,16 @@ async function processJob(admin, job) {
 
   if (videoError || !video) {
     throw new Error(videoError?.message || "Source video not found.");
+  }
+
+  // Handle different job types
+  switch (job.type) {
+    case "ENHANCE":
+      return await processEnhanceJob(admin, job, video);
+    // Add other cases here if needed
+    default:
+      // Fallback to existing logic for premium jobs
+      break;
   }
 
   const tempDir = await mkdtemp(path.join(tmpdir(), "smartclip-worker-"));
